@@ -11,8 +11,8 @@ import java.util.List;
  * point in one of the lower corners
  */
 public class STRange {
-	private STPoint mins = new STPoint();
-	private STPoint maxs = new STPoint();
+	private STPoint mins;
+	private STPoint maxs;
 	
 	public STRange(){}
 	
@@ -29,12 +29,12 @@ public class STRange {
 	 * @param point point to add to the range
 	 */
 	public void addPoint(STPoint point){
-		if(this.mins.isEmpty() || this.maxs.isEmpty()){
-			this.mins = point;
-			this.maxs = point;
+		if(this.mins == null || this.maxs == null){
+			this.mins = new STPoint(point);
+			this.maxs = new STPoint(point);
 		} else {
-			mins.updateMin(point);
-			maxs.updateMax(point);	
+			this.mins.updateMin(point);
+			this.maxs.updateMax(point);	
 		}
 	}
 	

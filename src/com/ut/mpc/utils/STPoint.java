@@ -3,9 +3,15 @@ package com.ut.mpc.utils;
 public class STPoint {
 	private float x;
 	private float y;
-	private Long t;
+	private long t;
 	
 	public STPoint(){}
+	
+	public STPoint(STPoint other){
+		this.x = other.x;
+		this.y = other.y;
+		this.t = other.t;
+	}
 	
 	//x is typically longitude
 	//y is typically latitude
@@ -31,16 +37,12 @@ public class STPoint {
 		this.y = y;
 	}
 
-	public Long getT() {
+	public long getT() {
 		return t;
 	}
 
 	public void setT(Long t) {
 		this.t = t;
-	}
-	
-	public boolean isEmpty(){
-		return this.t == null && this.x == 0.0f && this.y == 0.0f;
 	}
 	
 	public void updateMin(STPoint next){
