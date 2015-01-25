@@ -29,7 +29,7 @@ public class LSTFilter {
 	 * @param region - spatial and temporal bounds for which to query for the PoK
 	 * @return PoK value summarizing the coverage of the desired region
 	 */
-	public double coverageWindow(STRegion region) {
+	public double windowPoK(STRegion region) {
 		
 		STPoint mins = region.getMins();
 		STPoint maxs = region.getMaxs();
@@ -46,15 +46,12 @@ public class LSTFilter {
 		for(float x = mins.getX(); x < maxs.getX(); x = x + xGridGran){
 			for(float y = mins.getY(); x < maxs.getY(); y = y + yGridGran){
 				for(float t = mins.getT(); t < maxs.getT(); t = t + tGridGran){
+
 					STPoint centerOfRegion = new STPoint(x + xCenterOffset,
 														 y + yCenterOffset,
 														 t + tCenterOffset);
-					STPoint radiusValues = new STPoint(CoverageWindow.SPACE_RADIUS,
-														CoverageWindow.SPACE_RADIUS,
-														CoverageWindow.TIME_RADIUS);
-					STRegion miniRegion = GPSLib.getSpaceBoundQuick(centerOfRegion, radiusValues, SPATIAL_TYPE);
-					List<STPoint> activePoints = structure.range(miniRegion);
-					double regionWeight = this.getPointsPoK(centerOfRegion, activePoints);
+					
+					double regionWeight = this.pointPoK(centerOfRegion);
 					totalWeight += regionWeight;
 				}
 			}
@@ -64,6 +61,38 @@ public class LSTFilter {
 		double windowPoK = totalWeight / maxWeight * 100;
 		return windowPoK;
 	}
+	
+	/**
+	 * Retrieves the PoK for a given point.
+	 * Uses the default space radius to form a region around the point
+	 * @param point - point to query around
+	 * @return PoK value
+	 */
+	public double pointPoK(STPoint point){
+		STPoint radiusValues = new STPoint(CoverageWindow.SPACE_RADIUS,
+				CoverageWindow.SPACE_RADIUS,
+				CoverageWindow.TIME_RADIUS);
+		STRegion miniRegion = GPSLib.getSpaceBoundQuick(point, radiusValues, SPATIAL_TYPE);
+		List<STPoint> activePoints = structure.range(miniRegion);
+		return this.getPointsPoK(point, activePoints);
+	}
+	
+	/**
+	 * Finds the path between two points.  If the points don't match any in the structure
+	 * the nearest neighbors are chosen.
+	 * @param start - beginning point of path
+	 * @param end - terminating point of path
+	 * @return list of the sequentially (temporal) ordered points
+	 */
+	public List<STPoint> findPath(STPoint start, STPoint end) {
+		return structure.getSequence(start, end);
+	}
+	
+	
+	/*
+	 *  *********************** Private Methods ********************************
+	 *  
+	 */
 	
 	/**
 	 * Finds the PoK for the given points about the center point
@@ -168,31 +197,12 @@ public class LSTFilter {
 			this.getAggPoK(sum,next3,next2);
 		}
 	}
-
-	/**
-	 * Finds the path between two points
-	 * @param p1 first point
-	 * @param p2 second point
-	 * @return list of the sequentially (temporal) ordered points
-	 */
-	public List<STPoint> findPath(STPoint p1, STPoint p2) {
-		return null;
-	}
-	
-	/**
-	 * Retrieves the PoK for a given point.
-	 * Uses the default space radius to form a region around the point
-	 * @param point - point to query around
-	 * @return PoK value
-	 */
-	public double getPointPoK(STPoint point){
-		return 0.0;
-	}
 	
 	private void smartInsert(STPoint point) {
-		double pok = this.getPointPoK(point);
-		if(pok <= Constants.SmartInsert.INS_THRESH)
+		double pok = this.pointPoK(point);
+		if(pok <= Constants.SmartInsert.INS_THRESH){
 			this.stdInsert(point);
+		}
 	}
 
 	private void stdInsert(STPoint point) {
