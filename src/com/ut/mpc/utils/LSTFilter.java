@@ -13,6 +13,13 @@ public class LSTFilter {
 	private boolean smartInsert = true;
 
 	/**
+	 * Creates a new LSTFilter containing the given structure
+	 */
+	public LSTFilter(STStorage structure){
+		this.structure = structure;
+	}
+	
+	/**
 	 * Inserts a point into the structure.  Smart insertion is
 	 * determined from the LSTFilter's smartInsert member variable
 	 * @param item point to insert into the structure
@@ -158,7 +165,7 @@ public class LSTFilter {
 	 * Values are first sorted before trimming so most influential points will be kept
 	 * Sort after building the list as suggested in: http://stackoverflow.com/questions/168891/
 	 * @param nearby - list of points to be trimmed
-	 * @returns number of trimmed points
+	 * @return number of trimmed points
 	 */
 	private int trimNearby(List<Double> nearby){
 		int initialSize = nearby.size();
