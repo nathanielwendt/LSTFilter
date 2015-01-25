@@ -5,7 +5,7 @@ import static org.junit.Assert.*;
 import org.junit.Test;
 
 import com.ut.mpc.utils.STPoint;
-import com.ut.mpc.utils.STRange;
+import com.ut.mpc.utils.STRegion;
 
 public class STRangeTests {
 
@@ -14,7 +14,7 @@ public class STRangeTests {
 		STPoint p1 = new STPoint(0f,8f,23L);
 		STPoint p2 = new STPoint(2f,4f,99L);
 		
-		STRange range = new STRange();
+		STRegion range = new STRegion();
 		range.addPoint(p1);
 		range.addPoint(p2);
 		STPoint mins = range.getMins();
@@ -33,7 +33,7 @@ public class STRangeTests {
 	public void testAddSinglePoint() {
 		STPoint p1 = new STPoint(0f,8f,23L);
 		
-		STRange range = new STRange();
+		STRegion range = new STRegion();
 		range.addPoint(p1);
 		STPoint mins = range.getMins();
 		STPoint maxs = range.getMaxs();
@@ -54,7 +54,7 @@ public class STRangeTests {
 		STPoint p4 = new STPoint(2f,2f,11L);
 		STPoint p5 = new STPoint(11f,4f,13L);
 		
-		STRange range = new STRange();
+		STRegion range = new STRegion();
 		range.addPoint(p1);
 		range.addPoint(p2);
 		range.addPoint(p3);

@@ -1,6 +1,7 @@
 package com.ut.mpc.utils;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -10,13 +11,13 @@ import java.util.List;
  * a cube with the mins point in one of the upper corners and the maxs
  * point in one of the lower corners
  */
-public class STRange {
+public class STRegion {
 	private STPoint mins;
 	private STPoint maxs;
 	
-	public STRange(){}
+	public STRegion(){}
 	
-	public STRange(STPoint p1, STPoint p2){
+	public STRegion(STPoint p1, STPoint p2){
 		mins.updateMin(p1);
 		mins.updateMin(p2);
 		maxs.updateMax(p1);

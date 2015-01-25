@@ -7,6 +7,7 @@ public class Constants {
 	public static class CoverageWindow{
 		public static float SPACE_WEIGHT = 100; //useful for scaling the magnitude of the computation numbers (good to stay within reasonable bounds to avoid rounding/overflow)
 		public static float SPACE_RADIUS = 1;
+		public static float TIME_RADIUS = 1;
 		//public static float TIME_
 		
 		//SPACE_TRIM is almost made obsolete by trimNearby.  SPACE_TRIM is not based on percentage of current nearby points and is more of
@@ -24,8 +25,9 @@ public class Constants {
 		public static float LAT_KM_EST = .011f;
 		
 		public static boolean GRID_DEFAULT = false;
-		public static float X_GRID_GRAN = (GRID_DEFAULT) ? SPACE_RADIUS / 10 : .001f; //allow fine tuning by setting grid default to off
-		public static float Y_GRID_GRAN = (GRID_DEFAULT) ? SPACE_RADIUS / 10 : .001f; //allow fine tuning by setting grid default to off
+		public static float X_GRID_GRAN = (GRID_DEFAULT) ? SPACE_RADIUS / 2 : .001f; //allow fine tuning by setting grid default to off
+		public static float Y_GRID_GRAN = (GRID_DEFAULT) ? SPACE_RADIUS / 2 : .001f; //allow fine tuning by setting grid default to off
+		public static float T_GRID_GRAN = (GRID_DEFAULT) ? TIME_RADIUS / 2 : .01f;
 		public static int OPT_LEVEL = 1;
 		public static boolean PLOT = false;
 		public static boolean NORMALIZE_PLOT = false; //generally won't see an effect of temporal decay with this set to true (will simply normalize scale)

@@ -3,7 +3,7 @@ package com.ut.mpc.utils;
 public class STPoint {
 	private float x;
 	private float y;
-	private long t;
+	private float t;
 	
 	public STPoint(){}
 	
@@ -15,7 +15,7 @@ public class STPoint {
 	
 	//x is typically longitude
 	//y is typically latitude
-	public STPoint(float x, float y, Long t){
+	public STPoint(float x, float y, float t){
 		this.x = x;
 		this.y = y;
 		this.t = t;
@@ -37,7 +37,7 @@ public class STPoint {
 		this.y = y;
 	}
 
-	public long getT() {
+	public float getT() {
 		return t;
 	}
 
@@ -73,6 +73,13 @@ public class STPoint {
 		return " X: " + String.valueOf(this.x) + 
 			   " Y: " + String.valueOf(this.y) + 
 			   " T: " + String.valueOf(this.t);
+	}
+	
+	//linear decay function with any value for slope
+	public double getTimeRelevance(float current, float reference, float time_decay){
+		float nowOffset = this.t - reference;
+		float currentOffset = current - reference;
+		return (double) nowOffset / ((double) currentOffset * time_decay);
 	}
 	
 }

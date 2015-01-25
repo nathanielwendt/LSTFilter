@@ -24,7 +24,7 @@ public interface STStorage {
 	 * @param range bounds for the range query
 	 * @return list of points found within the region queried for
 	 */
-	public List<STPoint> range(STRange range);
+	public List<STPoint> range(STRegion range);
 	
 	/**
 	 * Returns the n nearest neighbors from a given needle point
