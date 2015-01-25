@@ -1,8 +1,5 @@
 package com.ut.mpc.utils;
 
-import ut.mpc.setup.Init;
-import ut.mpc.setup.Init.CoordType;
-
 import com.ut.mpc.setup.Constants;
 import com.ut.mpc.setup.Constants.SpatialType;
 
@@ -19,7 +16,7 @@ public class GPSLib {
 	 * @param radiusValues - point representing expansion values in each dimension.  These are 
 	 * 		  raw values that need to be transferred to coordinate system before use
 	 */
-	public static STRegion getSpaceBoundQuick(STPoint point, STPoint radiusValues, Constants.SpatialType type){
+	public static STRegion getSpaceBoundQuick(STPoint point, STPoint radiusValues, Constants.SpatialType type) throws LSTFilterException{
 		STRegion region = new STRegion();
 		
 		float xOffset, yOffset, tOffset;
@@ -43,7 +40,7 @@ public class GPSLib {
 		return region;
 	}
 	
-	public static double spatialDistanceBetween(STPoint p1, STPoint p2, Constants.SpatialType type){
+	public static double spatialDistanceBetween(STPoint p1, STPoint p2, Constants.SpatialType type) throws LSTFilterException{
 		if(type == Constants.SpatialType.GPS){
 			double R = 6371;
 			double lat1 = Math.toRadians(p1.getY());

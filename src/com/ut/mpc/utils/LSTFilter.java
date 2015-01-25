@@ -72,9 +72,14 @@ public class LSTFilter {
 		STPoint radiusValues = new STPoint(CoverageWindow.SPACE_RADIUS,
 				CoverageWindow.SPACE_RADIUS,
 				CoverageWindow.TIME_RADIUS);
-		STRegion miniRegion = GPSLib.getSpaceBoundQuick(point, radiusValues, SPATIAL_TYPE);
-		List<STPoint> activePoints = structure.range(miniRegion);
-		return this.getPointsPoK(point, activePoints);
+		try {
+			STRegion miniRegion = GPSLib.getSpaceBoundQuick(point, radiusValues, SPATIAL_TYPE);
+			List<STPoint> activePoints = structure.range(miniRegion);
+			return this.getPointsPoK(point, activePoints);
+		} catch (LSTFilterException e){
+			e.printStackTrace();
+			return -9.99;
+		}
 	}
 	
 	/**
@@ -107,7 +112,12 @@ public class LSTFilter {
 		for(int i = 0; i < points.size(); i++){
 			//iterations++;
 			STPoint currPoint = points.get(i);
-			distFromPoint = GPSLib.spatialDistanceBetween(center, currPoint, SPATIAL_TYPE);
+			try {
+				distFromPoint = GPSLib.spatialDistanceBetween(center, currPoint, SPATIAL_TYPE);
+			} catch (LSTFilterException e){
+				e.printStackTrace();
+				distFromPoint = 0.0;
+			}
 			
 			spatialContribution = (-CoverageWindow.SPACE_WEIGHT / CoverageWindow.SPACE_RADIUS) * distFromPoint 
 						 + CoverageWindow.SPACE_WEIGHT;
