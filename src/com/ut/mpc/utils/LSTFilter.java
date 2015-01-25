@@ -13,7 +13,8 @@ public class LSTFilter {
 	private boolean smartInsert = true;
 
 	/**
-	 * Creates a new LSTFilter containing the given structure
+	 * Creates a new LSTFilter containing the given structure.
+	 * @param structure - STStorage structure to include within the LSTFilter
 	 */
 	public LSTFilter(STStorage structure){
 		this.structure = structure;
