@@ -1,12 +1,19 @@
 package com.ut.mpc.utils;
 
 public class STPoint {
-	private float x;
-	private float y;
-	private float t;
+	private static float DEFAULT_VAL = Float.MIN_NORMAL;
+	private float x = DEFAULT_VAL;
+	private float y = DEFAULT_VAL;
+	private float t = DEFAULT_VAL;
+	
+	public static void main(String[] args){
+		STPoint point = new STPoint(2.2f,1f);
+		System.out.println(point.t);
+		System.out.println(DEFAULT_VAL);
+	}
 	
 	public STPoint(){}
-	
+
 	public STPoint(STPoint other){
 		this.x = other.x;
 		this.y = other.y;
@@ -21,12 +28,24 @@ public class STPoint {
 		this.t = t;
 	}
 	
+	public STPoint(float x, float y){
+		this(x,y,DEFAULT_VAL);
+	}
+	
+	public STPoint(float t){
+		this(DEFAULT_VAL, DEFAULT_VAL, t);
+	}
+
 	public float getX() {
 		return x;
 	}
 
 	public void setX(float x) {
 		this.x = x;
+	}
+	
+	public boolean hasX(){
+		return this.x != DEFAULT_VAL;
 	}
 
 	public float getY() {
@@ -36,6 +55,10 @@ public class STPoint {
 	public void setY(float y) {
 		this.y = y;
 	}
+	
+	public boolean hasY(){
+		return this.y != DEFAULT_VAL;
+	}
 
 	public float getT() {
 		return t;
@@ -43,6 +66,10 @@ public class STPoint {
 
 	public void setT(Long t) {
 		this.t = t;
+	}
+	
+	public boolean hasT(){
+		return this.t != DEFAULT_VAL;
 	}
 	
 	public void updateMin(STPoint next){
