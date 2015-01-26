@@ -1,4 +1,4 @@
-package com.ut.mpc.utils;
+package LSTStructure.src.com.ut.mpc.utils;
 
 import java.util.List;
 
@@ -41,5 +41,9 @@ public interface STStorage {
 	 * @return List of points in order they appear in the sequence
 	 */
 	public List<STPoint> getSequence(STPoint start, STPoint end);
-	
+
+    /**
+     * Deletes all data points within the structure
+     */
+    public void clear();
 }

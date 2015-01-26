@@ -1,4 +1,4 @@
-package com.ut.mpc.setup;
+package LSTStructure.src.com.ut.mpc.setup;
 
 public class Constants {
 	public enum SpatialType{GPS,Meters};
@@ -24,7 +24,7 @@ public class Constants {
 		public static float LONG_KM_EST = .099f;
 		public static float LAT_KM_EST = .011f;
 		
-		public static boolean GRID_DEFAULT = false;
+		public static boolean GRID_DEFAULT = true;
 		public static float X_GRID_GRAN = (GRID_DEFAULT) ? SPACE_RADIUS / 2 : .001f; //allow fine tuning by setting grid default to off
 		public static float Y_GRID_GRAN = (GRID_DEFAULT) ? SPACE_RADIUS / 2 : .001f; //allow fine tuning by setting grid default to off
 		public static float T_GRID_GRAN = (GRID_DEFAULT) ? TIME_RADIUS / 2 : .01f;

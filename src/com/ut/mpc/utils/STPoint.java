@@ -1,4 +1,4 @@
-package com.ut.mpc.utils;
+package LSTStructure.src.com.ut.mpc.utils;
 
 public class STPoint {
 	private static float DEFAULT_VAL = Float.MIN_NORMAL;

@@ -3,7 +3,7 @@
  * 
  */
 
-package com.ut.mpc.utils;
+package LSTStructure.src.com.ut.mpc.utils;
 
 import java.util.ArrayList;
 import java.util.List;

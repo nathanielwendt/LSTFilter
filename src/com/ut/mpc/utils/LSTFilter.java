@@ -1,11 +1,13 @@
-package com.ut.mpc.utils;
-
-import static com.ut.mpc.setup.Constants.*;
+package LSTStructure.src.com.ut.mpc.utils;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import com.ut.mpc.setup.Constants;
+import LSTStructure.src.com.ut.mpc.setup.Constants;
+
+import static LSTStructure.src.com.ut.mpc.setup.Constants.CoverageWindow;
+import static LSTStructure.src.com.ut.mpc.setup.Constants.SPATIAL_TYPE;
+import static LSTStructure.src.com.ut.mpc.setup.Constants.SpatialType;
 
 public class LSTFilter {
 	private STStorage structure;
@@ -66,8 +68,7 @@ public class LSTFilter {
 		}
 		
 		double maxWeight = count * CoverageWindow.SPACE_WEIGHT;
-		double windowPoK = totalWeight / maxWeight * 100;
-		return windowPoK;
+		return totalWeight / maxWeight * 100;
 	}
 	
 	/**
@@ -86,7 +87,7 @@ public class LSTFilter {
 			return this.getPointsPoK(point, activePoints);
 		} catch (LSTFilterException e){
 			e.printStackTrace();
-			return -9.99;
+			return Float.MIN_VALUE;
 		}
 	}
 	
@@ -100,6 +101,29 @@ public class LSTFilter {
 	public List<STPoint> findPath(STPoint start, STPoint end) {
 		return structure.getSequence(start, end);
 	}
+
+    /**
+     * Convenience method for clearing the structure
+     */
+    public void clear(){
+        structure.clear();
+    }
+
+    /**
+     * Sets the structure's smart insert flag
+     * @param isSmart - value to set the smart insert flag to
+     */
+    public void setSmartInsert(boolean isSmart){
+        this.smartInsert = isSmart;
+    }
+
+    /**
+     * Gets the size of the structure
+     * @return size of the structure, number of data points
+     */
+    public int getSize(){
+        return structure.getSize();
+    }
 	
 	
 	/*
@@ -117,9 +141,8 @@ public class LSTFilter {
 		double distFromPoint, spatialContribution, temporalContribution, tileWeight;
 		List<Double> nearby = new ArrayList<Double>();
 		tileWeight = 0;
-		for(int i = 0; i < points.size(); i++){
+        for(STPoint currPoint : points){
 			//iterations++;
-			STPoint currPoint = points.get(i);
 			try {
 				distFromPoint = GPSLib.spatialDistanceBetween(center, currPoint, SPATIAL_TYPE);
 			} catch (LSTFilterException e){

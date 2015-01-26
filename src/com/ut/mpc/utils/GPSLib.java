@@ -1,7 +1,7 @@
-package com.ut.mpc.utils;
+package LSTStructure.src.com.ut.mpc.utils;
 
-import com.ut.mpc.setup.Constants;
-import com.ut.mpc.setup.Constants.SpatialType;
+import LSTStructure.src.com.ut.mpc.setup.Constants;
+import LSTStructure.src.com.ut.mpc.setup.Constants.SpatialType;
 
 
 

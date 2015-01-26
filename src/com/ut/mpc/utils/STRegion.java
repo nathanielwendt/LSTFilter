@@ -1,8 +1,4 @@
-package com.ut.mpc.utils;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+package LSTStructure.src.com.ut.mpc.utils;
 
 /**
  * Creates a range object commonly used for queries
@@ -12,8 +8,8 @@ import java.util.List;
  * point in one of the lower corners
  */
 public class STRegion {
-	private STPoint mins;
-	private STPoint maxs;
+	private STPoint mins = new STPoint();
+	private STPoint maxs = new STPoint();
 	
 	public STRegion(){}
 	
