@@ -1,13 +1,13 @@
-package main.java.com.ut.mpc.utils;
+package LSTStructure.src.com.ut.mpc.utils;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import main.java.com.ut.mpc.setup.Constants;
+import LSTStructure.src.com.ut.mpc.setup.Constants;
 
-import static main.java.com.ut.mpc.setup.Constants.CoverageWindow;
-import static main.java.com.ut.mpc.setup.Constants.SPATIAL_TYPE;
-import static main.java.com.ut.mpc.setup.Constants.SpatialType;
+import static LSTStructure.src.com.ut.mpc.setup.Constants.CoverageWindow;
+import static LSTStructure.src.com.ut.mpc.setup.Constants.SPATIAL_TYPE;
+import static LSTStructure.src.com.ut.mpc.setup.Constants.SpatialType;
 
 public class LSTFilter {
 	private STStorage structure;

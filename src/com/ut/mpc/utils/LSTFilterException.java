@@ -1,4 +1,4 @@
-package main.java.com.ut.mpc.utils;
+package LSTStructure.src.com.ut.mpc.utils;
 public class LSTFilterException extends Exception {
     public LSTFilterException(String message) {
         super(message);

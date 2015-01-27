@@ -1,4 +1,4 @@
-package main.java.com.ut.mpc.utils;
+package LSTStructure.src.com.ut.mpc.utils;
 
 /**
  * Creates a range object commonly used for queries
