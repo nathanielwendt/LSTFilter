@@ -1,4 +1,4 @@
-package LSTStructure.src.com.ut.mpc.setup;
+package com.ut.mpc.setup;
 
 public class Constants {
 	public enum SpatialType{GPS,Meters};
