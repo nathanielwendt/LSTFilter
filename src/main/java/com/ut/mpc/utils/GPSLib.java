@@ -1,8 +1,6 @@
-package LSTStructure.src.com.ut.mpc.utils;
+package main.java.com.ut.mpc.utils;
 
-import LSTStructure.src.com.ut.mpc.setup.Constants;
-import LSTStructure.src.com.ut.mpc.setup.Constants.SpatialType;
-
+import main.java.com.ut.mpc.setup.Constants;
 
 
 public class GPSLib {
