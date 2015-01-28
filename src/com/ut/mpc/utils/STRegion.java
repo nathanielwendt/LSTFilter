@@ -8,8 +8,8 @@ package com.ut.mpc.utils;
  * point in one of the lower corners
  */
 public class STRegion {
-	private STPoint mins = new STPoint();
-	private STPoint maxs = new STPoint();
+	private STPoint mins;
+	private STPoint maxs;
 	
 	public STRegion(){}
 	

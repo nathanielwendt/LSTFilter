@@ -96,6 +96,21 @@ public class STPoint {
 		}
 	}
 	
+	@Override
+	public boolean equals(Object obj){
+		if(obj == this){ 
+			return true;
+		}
+		if(obj == null || obj.getClass() != this.getClass()){ 
+			return false; 
+		}
+		STPoint other = (STPoint) obj;
+		
+		return (Float.compare(this.getX(), other.getX()) == 0) &&
+				(Float.compare(this.getY(), other.getY()) == 0) &&
+				(Float.compare(this.getT(), other.getT()) == 0);
+	}
+	
 	public String toString(){
 		return " X: " + String.valueOf(this.x) + 
 			   " Y: " + String.valueOf(this.y) + 
