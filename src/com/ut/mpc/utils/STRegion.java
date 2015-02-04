@@ -14,6 +14,12 @@ public class STRegion {
 	public STRegion(){}
 	
 	public STRegion(STPoint p1, STPoint p2){
+		if(mins == null){
+			mins = new STPoint();
+		}
+		if(maxs == null){
+			maxs = new STPoint();
+		}
 		mins.updateMin(p1);
 		mins.updateMin(p2);
 		maxs.updateMax(p1);
@@ -49,5 +55,9 @@ public class STRegion {
 	 */
 	public STPoint getMaxs(){
 		return this.maxs;
+	}
+	
+	public String toString(){
+		return this.mins.toString() + this.maxs.toString();
 	}
 }

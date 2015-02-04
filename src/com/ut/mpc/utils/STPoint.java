@@ -1,5 +1,8 @@
 package com.ut.mpc.utils;
 
+import com.ut.mpc.setup.Constants;
+import com.ut.mpc.setup.Constants.CoverageWindow;
+
 public class STPoint {
 	private static float DEFAULT_VAL = Float.MIN_NORMAL;
 	private float x = DEFAULT_VAL;
@@ -7,9 +10,26 @@ public class STPoint {
 	private float t = DEFAULT_VAL;
 	
 	public static void main(String[] args){
-		STPoint point = new STPoint(2.2f,1f);
-		System.out.println(point.t);
-		System.out.println(DEFAULT_VAL);
+		STPoint point = new STPoint(1f,1f,10f);
+		System.out.println(point.getTimeRelevance(10.5f, 2));
+		System.out.println(point.getTimeRelevance(9.5f, 2));
+		System.out.println(point.getTimeRelevance(10f, 2));
+		
+		point = new STPoint(1f,1f,100f);
+		System.out.println(point.getTimeRelevance(100.5f, 2));
+		System.out.println(point.getTimeRelevance(99.5f, 2));
+		System.out.println(point.getTimeRelevance(100f, 2));
+		
+		point = new STPoint(1f,1f,1000f);
+		System.out.println(point.getTimeRelevance(1000.5f, 2));
+		System.out.println(point.getTimeRelevance(999.5f, 2));
+		System.out.println(point.getTimeRelevance(1000f, 2));
+		
+		point = new STPoint(1f,1f,1f);
+		System.out.println(point.getTimeRelevance(1.5f, 2));
+		System.out.println(point.getTimeRelevance(0.5f, 2));
+		System.out.println(point.getTimeRelevance(1f, 2));
+
 	}
 	
 	public STPoint(){}
@@ -118,10 +138,14 @@ public class STPoint {
 	}
 	
 	//linear decay function with any value for slope
-	public double getTimeRelevance(float current, float reference, float time_decay){
-		float nowOffset = this.t - reference;
-		float currentOffset = current - reference;
-		return (double) nowOffset / ((double) currentOffset * time_decay);
+	public double getTimeRelevance(float reference, float decay){
+		double referenceDub = (double) reference;
+		double thisDub = (double) this.getT();
+		double decayDub = (double) decay;
+		double offset = Math.abs(referenceDub - thisDub);
+		//return ((-1 * decayDub * offset) + thisDub) / thisDub;
+		return ((-CoverageWindow.TEMPORAL_WEIGHT / CoverageWindow.TEMPORAL_RADIUS) * offset +
+				CoverageWindow.TEMPORAL_WEIGHT) / CoverageWindow.TEMPORAL_WEIGHT;
 	}
 	
 }

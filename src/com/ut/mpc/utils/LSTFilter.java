@@ -54,41 +54,32 @@ public class LSTFilter {
 		float tCenterOffset = tGridGran / 2;
 		
 		for(float x = mins.getX(); x < maxs.getX(); x = x + xGridGran){
-			for(float y = mins.getY(); x < maxs.getY(); y = y + yGridGran){
+			for(float y = mins.getY(); y < maxs.getY(); y = y + yGridGran){
 				for(float t = mins.getT(); t < maxs.getT(); t = t + tGridGran){
 
 					STPoint centerOfRegion = new STPoint(x + xCenterOffset,
 														 y + yCenterOffset,
 														 t + tCenterOffset);
-					
-					double regionWeight = this.pointPoK(centerOfRegion);
+					double regionWeight = this.pointPoK(centerOfRegion, true);
 					totalWeight += regionWeight;
+					count++;
 				}
 			}
 		}
 		
+		//TODO: fix this, needs temporal values
 		double maxWeight = count * CoverageWindow.SPACE_WEIGHT;
 		return totalWeight / maxWeight * 100;
 	}
 	
 	/**
 	 * Retrieves the PoK for a given point.
-	 * Uses the default space radius to form a region around the point
+	 * Uses the default space bound values to form a region around the point
 	 * @param point - point to query around
 	 * @return PoK value
 	 */
 	public double pointPoK(STPoint point){
-		STPoint radiusValues = new STPoint(CoverageWindow.SPACE_RADIUS,
-				CoverageWindow.SPACE_RADIUS,
-				CoverageWindow.TIME_RADIUS);
-		try {
-			STRegion miniRegion = GPSLib.getSpaceBoundQuick(point, radiusValues, SPATIAL_TYPE);
-			List<STPoint> activePoints = structure.range(miniRegion);
-			return this.getPointsPoK(point, activePoints);
-		} catch (LSTFilterException e){
-			e.printStackTrace();
-			return Float.MIN_VALUE;
-		}
+		return this.pointPoK(point, true);
 	}
 	
 	/**
@@ -132,17 +123,41 @@ public class LSTFilter {
 	 */
 	
 	/**
+	 * Retrieves the PoK for a given point.
+	 * Uses the default space bound values to form a region around the point
+	 * @param point - point to query around
+	 * @param asPercentage - return percentage or raw number (without total weight adjustment)
+	 * @return PoK value
+	 */
+	public double pointPoK(STPoint point, boolean asPercentage){
+		STPoint boundValues = new STPoint(CoverageWindow.SPACE_RADIUS,
+				CoverageWindow.SPACE_RADIUS,
+				CoverageWindow.TEMPORAL_RADIUS);
+		try {
+			STRegion miniRegion = GPSLib.getSpaceBoundQuick(point, boundValues, SPATIAL_TYPE);
+			List<STPoint> activePoints = structure.range(miniRegion);
+			return this.getPointsPoK(point, activePoints, asPercentage);
+		} catch (LSTFilterException e){
+			e.printStackTrace();
+			return Float.MIN_VALUE;
+		}
+	}
+    
+	/**
 	 * Finds the PoK for the given points about the center point
 	 * The PoK is found using the center point as the reference point for finding distances
 	 * @param center - Reference point from which to perform the calculation
 	 * @param points - points used to determine impact on PoK w.r.t. center point
 	 */
-	private double getPointsPoK(STPoint center, List<STPoint> points){
-		double distFromPoint, spatialContribution, temporalContribution, tileWeight;
+	private double getPointsPoK(STPoint center, List<STPoint> points, boolean asPercentage){
+		double distFromPoint, spatialContribution, temporalScaling, tileWeight;
 		List<Double> nearby = new ArrayList<Double>();
 		tileWeight = 0;
+		
+		double temporalDecayEff = CoverageWindow.TEMPORAL_DECAY;
+		double spatialDecayEff = CoverageWindow.SPACE_DECAY;
+		double totalWeightEff = CoverageWindow.TOTAL_WEIGHT;
         for(STPoint currPoint : points){
-			//iterations++;
 			try {
 				distFromPoint = GPSLib.spatialDistanceBetween(center, currPoint, SPATIAL_TYPE);
 			} catch (LSTFilterException e){
@@ -150,15 +165,11 @@ public class LSTFilter {
 				distFromPoint = 0.0;
 			}
 			
-			spatialContribution = (-CoverageWindow.SPACE_WEIGHT / CoverageWindow.SPACE_RADIUS) * distFromPoint 
-						 + CoverageWindow.SPACE_WEIGHT;
-			if(spatialContribution > CoverageWindow.SPACE_TRIM){
-				spatialContribution /= 100;
-				temporalContribution = currPoint.getTimeRelevance(CoverageWindow.CURRENT_TIMESTAMP, 
-																  CoverageWindow.REFERENCE_TIMESTAMP,
-																  CoverageWindow.TEMPORAL_DECAY);
-				nearby.add(spatialContribution * temporalContribution);
-			}
+			double temporalOffset = Math.abs(center.getT() - currPoint.getT());
+			double contribution = (spatialDecayEff * Math.min(distFromPoint,CoverageWindow.SPACE_RADIUS) + 
+									temporalDecayEff * Math.min(temporalOffset,CoverageWindow.TEMPORAL_RADIUS));
+
+			nearby.add(contribution);
 		}
 		
 		//TODO: do we still need this with r-tree?
@@ -176,12 +187,12 @@ public class LSTFilter {
 				tileWeight = 0.0;
 		}
 		
-		//if(tileWeight > 100){
-			//Init.DebugPrint("size of nearby: " + nearby.size(), 1);
-			//Init.DebugPrint("non-opt print overflow of space weight: greater probabilty than possible", 1);
-			//Init.DebugPrint("tileWeight: " + tileWeight, 1);
-		//}
-		return tileWeight;
+		if(asPercentage){
+			return ((points.size() * totalWeightEff) - tileWeight) / CoverageWindow.TOTAL_WEIGHT;
+		} else {
+			return (points.size() * totalWeightEff) - tileWeight;
+		}
+
 	}
 	
 	/** 

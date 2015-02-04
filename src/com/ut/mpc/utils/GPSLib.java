@@ -2,8 +2,6 @@ package com.ut.mpc.utils;
 
 import com.ut.mpc.setup.Constants;
 
-
-
 public class GPSLib {
 	private static float longitudeKM = .009f;
 	private static float latitudeKM = .001f;
@@ -12,21 +10,21 @@ public class GPSLib {
 	 * Retrieves a space bound around a given point with given radius values using GPS estimation, if
 	 * the depicted type is GPS type
 	 * @param point - point around which to form the bound
-	 * @param radiusValues - point representing expansion values in each dimension.  These are 
+	 * @param boundValues - point representing expansion values in each dimension.  These are 
 	 * 		  raw values that need to be transferred to coordinate system before use
 	 */
-	public static STRegion getSpaceBoundQuick(STPoint point, STPoint radiusValues, Constants.SpatialType type) throws LSTFilterException{
+	public static STRegion getSpaceBoundQuick(STPoint point, STPoint boundValues, Constants.SpatialType type) throws LSTFilterException{
 		STRegion region = new STRegion();
 		
 		float xOffset, yOffset, tOffset;
 		if(type == Constants.SpatialType.GPS){
-			xOffset = radiusValues.getX() * longitudeKM;
-			yOffset = radiusValues.getY() * latitudeKM;
-			tOffset = radiusValues.getT();
+			xOffset = boundValues.getX() * longitudeKM;
+			yOffset = boundValues.getY() * latitudeKM;
+			tOffset = boundValues.getT();
 		} else if(type == Constants.SpatialType.Meters){
-			xOffset = radiusValues.getX();
-			yOffset = radiusValues.getY();
-			tOffset = radiusValues.getT();
+			xOffset = boundValues.getX();
+			yOffset = boundValues.getY();
+			tOffset = boundValues.getT();
 		} else {
 			throw new LSTFilterException("Unrecognized coordinate type for GPSLib");
 		}
@@ -52,6 +50,7 @@ public class GPSLib {
 			return d;
 		} else if(type == Constants.SpatialType.Meters) {
 			return Math.sqrt(Math.pow(p1.getX() - p2.getX(),2) + Math.pow(p1.getY() - p2.getY(),2));
+			//return Math.pow(p1.getX() - p2.getX(),2) + Math.pow(p1.getY() - p2.getY(),2);
 		} else {
 			throw new LSTFilterException("Unrecognized coordinate type for GPSLib");
 		}
