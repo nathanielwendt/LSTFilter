@@ -61,20 +61,14 @@ public class LSTFilter {
 		float xCenterOffset = xGridGran / 2;
 		float yCenterOffset = yGridGran / 2;
 		float tCenterOffset = tGridGran / 2;
-		
-		double totalGridCount = Math.floor((Math.abs(maxs.getX() - mins.getX()) + xGridGran) / xGridGran) *
-				Math.floor((Math.abs(maxs.getY() - mins.getY()) + yGridGran) / yGridGran) *
-				Math.floor((Math.abs(maxs.getT() - mins.getT()) + tGridGran) / tGridGran);
-		
+
+		double totalGridCount = this.getGridCount(mins,maxs, new STPoint(xGridGran, yGridGran, tGridGran));
+
+		//snap region to compute to points that actually exist to avoid calculating empty regions
 		STRegion outerBounds = structure.getBoundingBox();
 		mins.updateMax(outerBounds.getMins());
 		maxs.updateMin(outerBounds.getMaxs());
 
-		double effectiveGridCount = Math.floor((Math.abs(maxs.getX() - mins.getX()) + xGridGran) / xGridGran) *
-									Math.floor((Math.abs(maxs.getY() - mins.getY()) + yGridGran) / yGridGran) *
-									Math.floor((Math.abs(maxs.getT() - mins.getT()) + tGridGran) / tGridGran);
-
-		double count = 0;
 		for(float x = mins.getX(); x < maxs.getX(); x = x + xGridGran){
 			for(float y = mins.getY(); y < maxs.getY(); y = y + yGridGran){
 				for(float t = mins.getT(); t < maxs.getT(); t = t + tGridGran){
@@ -84,15 +78,25 @@ public class LSTFilter {
 														 t + tCenterOffset);
 					regionWeight = this.pointPoK(centerOfRegion);
 					totalWeight += regionWeight;
-					count++;
 				}
 			}
 		}
 		if(snap){
+			double effectiveGridCount = this.getGridCount(mins,maxs, new STPoint(xGridGran, yGridGran, tGridGran));
 			return totalWeight / effectiveGridCount;
 		} else {
 			return totalWeight / totalGridCount;
 		}
+	}
+	
+	private double getGridCount(STPoint ref1, STPoint ref2, STPoint granularities){
+		double xComp = (Math.abs(ref1.getX() - ref2.getX())) / granularities.getX();
+		double xIter = Math.floor(xComp) + Math.ceil(xComp - Math.floor(xComp));
+		double yComp = (Math.abs(ref1.getY() - ref2.getY())) / granularities.getY();
+		double yIter = Math.floor(yComp) + Math.ceil(yComp - Math.floor(yComp));		
+		double tComp = (Math.abs(ref1.getT() - ref2.getT())) / granularities.getT();
+		double tIter = Math.floor(tComp) + Math.ceil(tComp - Math.floor(tComp));
+		return xIter * yIter * tIter;
 	}
 	
 	/**

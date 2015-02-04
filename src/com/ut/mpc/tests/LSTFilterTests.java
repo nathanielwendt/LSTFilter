@@ -180,26 +180,37 @@ public class LSTFilterTests {
 		
 		max = new STPoint(1f,0.5f,0.5f);
 		result = filter.windowPoK(new STRegion(min, max));
-		assertEquals(.875f, result, .0001);
+		assertEquals(.5f, result, .0001);
 	}
 
 	@Test
-	public void testWindowPoKOverload(){
+	public void testWindowPoKSnap(){
 		LSTFilter filter = new LSTFilter(new SpatialArray());
 		filter.setSmartInsert(false);
-		for(float i=0; i<10; i+=.25f){
-			for(float j=0; j<10; j+=.25f){
-				for(float k=0; k<10; k+=.25f){
+		for(float i=0; i<5; i+=.25f){
+			for(float j=0; j<5; j+=.25f){
+				for(float k=0; k<5; k+=.25f){
 					filter.insert(new STPoint(i,j,k));
 				}
 			}	
 		}
-		System.out.println(filter.getSize());
 		
 		STPoint min = new STPoint(0f,0f,0f);
-		STPoint max = new STPoint(10f,10f,30f);
+		STPoint max = new STPoint(5f,5f,20f);
 		double result = filter.windowPoK(new STRegion(min, max), false);
-		System.out.println(result);
+		assertEquals(.25f, result, .0001);
+		
+		//points are set to be perfectly aligned at grid spaces, snapping should always give 1.0
+		result = filter.windowPoK(new STRegion(min, max), true);
+		assertEquals(1.0f, result, .00001);
+		
+		min = new STPoint(10f,20f,200f);
+		result = filter.windowPoK(new STRegion(min, max), true);
+		assertEquals(1.0f, result, .00001);
+		
+		min = new STPoint(9f,2000f,22f);
+		result = filter.windowPoK(new STRegion(min, max), true);
+		assertEquals(1.0f, result, .00001);
 	}
 
 }
