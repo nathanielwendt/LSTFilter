@@ -33,26 +33,48 @@ public class LSTFilter {
 		else
 			this.stdInsert(item);
 	}
+	
+	/**
+	 * Convenience method for windowPoK where snap will be set to false
+	 * @param region - spatial and temporal bounds for which to query for the PoK
+	 * @return PoK value summarizing the coverage of the desired region
+	 */
+	public double windowPoK(STRegion region){
+		return this.windowPoK(region, false);
+	}
 
 	/**
 	 * Determines the PoK for a given STRegion
 	 * @param region - spatial and temporal bounds for which to query for the PoK
+	 * @param snap - will return a PoK value ignoring empty space beyond bounds of structure
 	 * @return PoK value summarizing the coverage of the desired region
 	 */
-	public double windowPoK(STRegion region) {
-		
+	public double windowPoK(STRegion region, boolean snap) {
 		STPoint mins = region.getMins();
 		STPoint maxs = region.getMaxs();
 		float xGridGran = CoverageWindow.X_GRID_GRAN;
 		float yGridGran = CoverageWindow.Y_GRID_GRAN;
 		float tGridGran = CoverageWindow.T_GRID_GRAN;
-		int count = 0;
 		double totalWeight = 0.0;
+		double regionWeight = 0.0;
 		
 		float xCenterOffset = xGridGran / 2;
 		float yCenterOffset = yGridGran / 2;
 		float tCenterOffset = tGridGran / 2;
 		
+		double totalGridCount = Math.floor((Math.abs(maxs.getX() - mins.getX()) + xGridGran) / xGridGran) *
+				Math.floor((Math.abs(maxs.getY() - mins.getY()) + yGridGran) / yGridGran) *
+				Math.floor((Math.abs(maxs.getT() - mins.getT()) + tGridGran) / tGridGran);
+		
+		STRegion outerBounds = structure.getBoundingBox();
+		mins.updateMax(outerBounds.getMins());
+		maxs.updateMin(outerBounds.getMaxs());
+
+		double effectiveGridCount = Math.floor((Math.abs(maxs.getX() - mins.getX()) + xGridGran) / xGridGran) *
+									Math.floor((Math.abs(maxs.getY() - mins.getY()) + yGridGran) / yGridGran) *
+									Math.floor((Math.abs(maxs.getT() - mins.getT()) + tGridGran) / tGridGran);
+
+		double count = 0;
 		for(float x = mins.getX(); x < maxs.getX(); x = x + xGridGran){
 			for(float y = mins.getY(); y < maxs.getY(); y = y + yGridGran){
 				for(float t = mins.getT(); t < maxs.getT(); t = t + tGridGran){
@@ -60,26 +82,38 @@ public class LSTFilter {
 					STPoint centerOfRegion = new STPoint(x + xCenterOffset,
 														 y + yCenterOffset,
 														 t + tCenterOffset);
-					double regionWeight = this.pointPoK(centerOfRegion, true);
+					regionWeight = this.pointPoK(centerOfRegion);
 					totalWeight += regionWeight;
 					count++;
 				}
 			}
 		}
-		
-		//TODO: fix this, needs temporal values
-		double maxWeight = count * CoverageWindow.SPACE_WEIGHT;
-		return totalWeight / maxWeight * 100;
+		if(snap){
+			return totalWeight / effectiveGridCount;
+		} else {
+			return totalWeight / totalGridCount;
+		}
 	}
 	
 	/**
 	 * Retrieves the PoK for a given point.
 	 * Uses the default space bound values to form a region around the point
 	 * @param point - point to query around
+	 * @param asPercentage - return percentage or raw number (without total weight adjustment)
 	 * @return PoK value
 	 */
 	public double pointPoK(STPoint point){
-		return this.pointPoK(point, true);
+		STPoint boundValues = new STPoint(CoverageWindow.SPACE_RADIUS,
+				CoverageWindow.SPACE_RADIUS,
+				CoverageWindow.TEMPORAL_RADIUS);
+		try {
+			STRegion miniRegion = GPSLib.getSpaceBoundQuick(point, boundValues, SPATIAL_TYPE);
+			List<STPoint> activePoints = structure.range(miniRegion);
+			return this.getPointsPoK(point, activePoints);
+		} catch (LSTFilterException e){
+			e.printStackTrace();
+			return Float.MIN_VALUE;
+		}
 	}
 	
 	/**
@@ -121,27 +155,7 @@ public class LSTFilter {
 	 *  *********************** Private Methods ********************************
 	 *  
 	 */
-	
-	/**
-	 * Retrieves the PoK for a given point.
-	 * Uses the default space bound values to form a region around the point
-	 * @param point - point to query around
-	 * @param asPercentage - return percentage or raw number (without total weight adjustment)
-	 * @return PoK value
-	 */
-	public double pointPoK(STPoint point, boolean asPercentage){
-		STPoint boundValues = new STPoint(CoverageWindow.SPACE_RADIUS,
-				CoverageWindow.SPACE_RADIUS,
-				CoverageWindow.TEMPORAL_RADIUS);
-		try {
-			STRegion miniRegion = GPSLib.getSpaceBoundQuick(point, boundValues, SPATIAL_TYPE);
-			List<STPoint> activePoints = structure.range(miniRegion);
-			return this.getPointsPoK(point, activePoints, asPercentage);
-		} catch (LSTFilterException e){
-			e.printStackTrace();
-			return Float.MIN_VALUE;
-		}
-	}
+
     
 	/**
 	 * Finds the PoK for the given points about the center point
@@ -149,29 +163,26 @@ public class LSTFilter {
 	 * @param center - Reference point from which to perform the calculation
 	 * @param points - points used to determine impact on PoK w.r.t. center point
 	 */
-	private double getPointsPoK(STPoint center, List<STPoint> points, boolean asPercentage){
-		double distFromPoint, spatialContribution, temporalScaling, tileWeight;
+	private double getPointsPoK(STPoint center, List<STPoint> points){
+		double spatialDistance, temporalDistance, spatialCont, temporalCont, tileWeight, contribution;
+
 		List<Double> nearby = new ArrayList<Double>();
 		tileWeight = 0;
-		
-		double temporalDecayEff = CoverageWindow.TEMPORAL_DECAY;
-		double spatialDecayEff = CoverageWindow.SPACE_DECAY;
-		double totalWeightEff = CoverageWindow.TOTAL_WEIGHT;
         for(STPoint currPoint : points){
 			try {
-				distFromPoint = GPSLib.spatialDistanceBetween(center, currPoint, SPATIAL_TYPE);
+				spatialDistance = GPSLib.spatialDistanceBetween(center, currPoint, SPATIAL_TYPE);
 			} catch (LSTFilterException e){
 				e.printStackTrace();
-				distFromPoint = 0.0;
+				spatialDistance = 0.0;
 			}
 			
-			double temporalOffset = Math.abs(center.getT() - currPoint.getT());
-			double contribution = (spatialDecayEff * Math.min(distFromPoint,CoverageWindow.SPACE_RADIUS) + 
-									temporalDecayEff * Math.min(temporalOffset,CoverageWindow.TEMPORAL_RADIUS));
-
-			nearby.add(contribution);
+			temporalDistance = Math.abs(center.getT() - currPoint.getT());
+			spatialCont =  (-CoverageWindow.SPACE_DECAY * Math.min(spatialDistance,CoverageWindow.SPACE_RADIUS));
+			temporalCont = (-CoverageWindow.TEMPORAL_DECAY * Math.min(temporalDistance,CoverageWindow.TEMPORAL_RADIUS));
+			contribution = spatialCont + temporalCont + CoverageWindow.TOTAL_WEIGHT;
+			nearby.add(contribution / CoverageWindow.TOTAL_WEIGHT);
 		}
-		
+        
 		//TODO: do we still need this with r-tree?
 		if(points.size() > 0 && nearby.size() > 0){ //make sure not to add a point with an empty activePoints tree
 			double[] aggResults = new double[2];
@@ -182,16 +193,11 @@ public class LSTFilter {
 			this.getAggPoK(aggResults,empty,nearby);
 			//recurseIterations += aggResults[1];
 			if(aggResults[0] > 0)
-				tileWeight = aggResults[0] * 100;
+				tileWeight = aggResults[0];
 			else
 				tileWeight = 0.0;
 		}
-		
-		if(asPercentage){
-			return ((points.size() * totalWeightEff) - tileWeight) / CoverageWindow.TOTAL_WEIGHT;
-		} else {
-			return (points.size() * totalWeightEff) - tileWeight;
-		}
+		return tileWeight;
 
 	}
 	
@@ -219,7 +225,7 @@ public class LSTFilter {
 	 * @param active - active list of points, pass in an empty List
 	 * @param rest - remaining list of points, pass in the list of points to be computed
 	 */
-	private void getAggPoK(double[] sum, List<Double> active, List<Double> rest){
+	public void getAggPoK(double[] sum, List<Double> active, List<Double> rest){
 		sum[1]++;
 		if(rest.size() == 0){
 			double sign;

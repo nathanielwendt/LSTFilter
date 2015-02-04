@@ -9,11 +9,13 @@ public class Constants {
 		
 		public static float SPACE_WEIGHT = 1;
 		public static float SPACE_RADIUS = 1;
-		public static float SPACE_DECAY = SPACE_WEIGHT / (SPACE_RADIUS * 100);
+		public static float SPACE_DECAY = SPACE_WEIGHT / (SPACE_RADIUS);
 		
 		public static float TEMPORAL_WEIGHT = TOTAL_WEIGHT - 1;
 		public static float TEMPORAL_RADIUS = 1f;
-		public static float TEMPORAL_DECAY = TEMPORAL_WEIGHT / (TEMPORAL_RADIUS * 100);
+		public static float TEMPORAL_DECAY = TEMPORAL_WEIGHT / (TEMPORAL_RADIUS);
+		
+		//TODO: add SPACE-TEMPORAL Trim so nearby doesn't need to trim if they are insignificant points
 		
 		public static int TRIM_THRESH = 10;
 		
@@ -63,7 +65,6 @@ public class Constants {
 		SPATIAL_TYPE = SpatialType.Meters;
 		CoverageWindow.SPACE_WEIGHT = 100;
 		CoverageWindow.SPACE_RADIUS = 30;
-		CoverageWindow.SPACE_TRIM = .3f * CoverageWindow.SPACE_WEIGHT; 	
 		CoverageWindow.GRID_DEFAULT = false;
 		CoverageWindow.X_GRID_GRAN = (CoverageWindow.GRID_DEFAULT) ? CoverageWindow.SPACE_RADIUS / 10 : 5; 
 		CoverageWindow.Y_GRID_GRAN = (CoverageWindow.GRID_DEFAULT) ? CoverageWindow.SPACE_RADIUS / 10 : 5; 	
@@ -84,8 +85,7 @@ public class Constants {
 	public static  void setCabsDefaults(){
 		SPATIAL_TYPE = SpatialType.GPS;
 		CoverageWindow.SPACE_WEIGHT = 100;
-		CoverageWindow.SPACE_RADIUS = 1; //km
-		CoverageWindow.SPACE_TRIM = .3f * CoverageWindow.SPACE_WEIGHT; 	
+		CoverageWindow.SPACE_RADIUS = 1; //km	
 		CoverageWindow.GRID_DEFAULT = false;
 		CoverageWindow.X_GRID_GRAN = (CoverageWindow.GRID_DEFAULT) ? CoverageWindow.SPACE_RADIUS / 10 : .001f; 
 		CoverageWindow.Y_GRID_GRAN = (CoverageWindow.GRID_DEFAULT) ? CoverageWindow.SPACE_RADIUS / 10 : .001f; 	

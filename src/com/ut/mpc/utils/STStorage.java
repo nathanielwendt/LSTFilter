@@ -41,6 +41,12 @@ public interface STStorage {
 	 * @return List of points in order they appear in the sequence
 	 */
 	public List<STPoint> getSequence(STPoint start, STPoint end);
+	
+	/**
+	 * Returns the bounding region around all data points in the structure
+	 * @return STRegion - region with mins and maxs set to bounds of points in structure
+	 */
+	public STRegion getBoundingBox();
 
     /**
      * Deletes all data points within the structure
