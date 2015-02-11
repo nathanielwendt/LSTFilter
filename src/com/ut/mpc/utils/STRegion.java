@@ -15,10 +15,10 @@ public class STRegion {
 	
 	public STRegion(STPoint p1, STPoint p2){
 		if(mins == null){
-			mins = new STPoint();
+			mins = new STPoint(p1);
 		}
 		if(maxs == null){
-			maxs = new STPoint();
+			maxs = new STPoint(p1);
 		}
 		mins.updateMin(p1);
 		mins.updateMin(p2);
