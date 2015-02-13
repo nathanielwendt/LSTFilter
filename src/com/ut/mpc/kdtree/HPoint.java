@@ -10,15 +10,15 @@ package com.ut.mpc.kdtree;
 
 class HPoint {
 
-    protected double[] coord;
+    protected float[] coord;
 
     protected HPoint(int n) {
-        coord = new double[n];
+        coord = new float[n];
     }
 
-    protected HPoint(double[] x) {
+    protected HPoint(float[] x) {
 
-        coord = new double[x.length];
+        coord = new float[x.length];
         for (int i = 0; i < x.length; ++i)
             coord[i] = x[i];
     }
@@ -38,12 +38,12 @@ class HPoint {
         return true;
     }
 
-    protected static double sqrdist(HPoint x, HPoint y) {
+    protected static float sqrdist(HPoint x, HPoint y) {
 
-        double dist = 0;
+        float dist = 0;
 
         for (int i = 0; i < x.coord.length; ++i) {
-            double diff = (x.coord[i] - y.coord[i]);
+            float diff = (x.coord[i] - y.coord[i]);
             dist += (diff * diff);
         }
 
@@ -51,9 +51,9 @@ class HPoint {
 
     }
 
-    protected static double eucdist(HPoint x, HPoint y) {
+    protected static float eucdist(HPoint x, HPoint y) {
 
-        return Math.sqrt(sqrdist(x, y));
+        return (float) Math.sqrt(sqrdist(x, y));
     }
 
     public String toString() {

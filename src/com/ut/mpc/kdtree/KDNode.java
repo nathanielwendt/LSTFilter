@@ -136,7 +136,7 @@ public class KDNode {
     // comments are direct quotes from there. Step "SDL" is added to
     // make the algorithm work correctly. NearestNeighborList solution
     // courtesy of Bjoern Heckel.
-    protected static void nnbr(KDNode kd, HPoint target, HRect hr, double max_dist_sqd, int lev, int K,
+    protected static void nnbr(KDNode kd, HPoint target, HRect hr, float max_dist_sqd, int lev, int K,
             NearestNeighborList nnl) {
 
         // 1. if kd is empty then set dist-sqd to infinity and exit.
@@ -149,7 +149,7 @@ public class KDNode {
 
         // 3. pivot := dom-elt field of kd
         HPoint pivot = kd.k;
-        double pivot_to_target = HPoint.sqrdist(pivot, target);
+        float pivot_to_target = HPoint.sqrdist(pivot, target);
 
         // 4. Cut hr into to sub-hyperrectangles left-hr and right-hr.
         // The cut plane is through pivot and perpendicular to the s
@@ -193,10 +193,10 @@ public class KDNode {
         nnbr(nearer_kd, target, nearer_hr, max_dist_sqd, lev + 1, K, nnl);
 
         KDNode nearest = (KDNode) nnl.getHighest();
-        double dist_sqd;
+        float dist_sqd;
 
         if (!nnl.isCapacityReached()) {
-            dist_sqd = Double.MAX_VALUE;
+            dist_sqd = Float.MAX_VALUE;
         } else {
             dist_sqd = nnl.getMaxPriority();
         }
@@ -229,7 +229,7 @@ public class KDNode {
                 if (nnl.isCapacityReached()) {
                     max_dist_sqd = nnl.getMaxPriority();
                 } else {
-                    max_dist_sqd = Double.MAX_VALUE;
+                    max_dist_sqd = Float.MAX_VALUE;
                 }
             }
 
@@ -238,7 +238,7 @@ public class KDNode {
             // storing results in temp-nearest and temp-dist-sqd
             nnbr(further_kd, target, further_hr, max_dist_sqd, lev + 1, K, nnl);
             KDNode temp_nearest = (KDNode) nnl.getHighest();
-            double temp_dist_sqd = nnl.getMaxPriority();
+            float temp_dist_sqd = nnl.getMaxPriority();
 
             // 10.3 If tmp-dist-sqd < dist-sqd then
             if (temp_dist_sqd < dist_sqd) {

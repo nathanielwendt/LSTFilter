@@ -13,15 +13,15 @@ public class KDTreeAdapter {
 	}
 	
 	public void insert(STPoint point){
-        double[] rawPoint = new double[]{point.getX(), point.getY(), point.getT()};
+        float[] rawPoint = new float[]{point.getX(), point.getY(), point.getT()};
         kdtree.insert(rawPoint, point);
 	}
 
     public List<STPoint> range(STRegion region){
         STPoint mins = region.getMins();
         STPoint maxs = region.getMaxs();
-        double[] minsRaw = new double[]{mins.getX(),mins.getY(),mins.getT()};
-        double[] maxsRaw = new double[]{maxs.getX(),maxs.getY(),maxs.getT()};
+        float[] minsRaw = new float[]{mins.getX(),mins.getY(),mins.getT()};
+        float[] maxsRaw = new float[]{maxs.getX(),maxs.getY(),maxs.getT()};
         Object[] results = kdtree.range(minsRaw, maxsRaw);
         List<STPoint> points = new ArrayList<STPoint>();
         for(Object result : results){

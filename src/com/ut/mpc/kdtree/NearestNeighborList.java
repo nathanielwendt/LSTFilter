@@ -19,17 +19,17 @@ class NearestNeighborList {
    // constructor
    public NearestNeighborList(int capacity) {
        m_Capacity = capacity;
-       m_Queue = new PriorityQueue(m_Capacity,Double.POSITIVE_INFINITY);
+       m_Queue = new PriorityQueue(m_Capacity,Float.POSITIVE_INFINITY);
    }
 
-   public double getMaxPriority() {
+   public float getMaxPriority() {
        if (m_Queue.length()==0) {
-           return Double.POSITIVE_INFINITY;
+           return Float.POSITIVE_INFINITY;
        }
        return m_Queue.getMaxPriority();
    }
 
-   public boolean insert(Object object,double priority) {
+   public boolean insert(Object object,float priority) {
        if (m_Queue.length()<m_Capacity) {
            // capacity not reached
            m_Queue.add(object,priority);

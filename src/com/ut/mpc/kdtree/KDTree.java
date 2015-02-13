@@ -87,7 +87,7 @@ public class KDTree {
 	 * @throws KeySizeException
 	 *             if key.length mismatches K
 	 */
-	public void insert(double[] key, Object value) {
+	public void insert(float[] key, Object value) {
 
 		if (key.length != m_K) {
 			throw new RuntimeException("KDTree: wrong key size!");
@@ -119,7 +119,7 @@ public class KDTree {
 	 * @throws KeySizeException
 	 *             if key.length mismatches K
 	 */
-	public Object search(double[] key) {
+	public Object search(float[] key) {
 
 		if (key.length != m_K) {
 			throw new RuntimeException("KDTree: wrong key size!");
@@ -143,7 +143,7 @@ public class KDTree {
 	 * @throws KeyMissingException
 	 *             if no node in tree has key
 	 */
-	public void delete(double[] key) {
+	public void delete(float[] key) {
 
 		if (key.length != m_K) {
 			throw new RuntimeException("KDTree: wrong key size!");
@@ -186,7 +186,7 @@ public class KDTree {
 	 * @throws KeySizeException
 	 *             if key.length mismatches K
 	 */
-	public Object nearest(double[] key) {
+	public Object nearest(float[] key) {
 
 		Object[] nbrs = nearest(key, 1);
 		return nbrs[0];
@@ -209,7 +209,7 @@ public class KDTree {
 	 * @throws IllegalArgumentException
 	 *             if <I>n</I> is negative or exceeds tree size
 	 */
-	public Object[] nearest(double[] key, int n) {
+	public Object[] nearest(float[] key, int n) {
 
 		if (n < 0 || n > m_count) {
 			throw new IllegalArgumentException("Number of neighbors ("+n+") cannot"
@@ -225,7 +225,7 @@ public class KDTree {
 
 		// initial call is with infinite hyper-rectangle and max distance
 		HRect hr = HRect.infiniteHRect(key.length);
-		double max_dist_sqd = Double.MAX_VALUE;
+		float max_dist_sqd = Float.MAX_VALUE;
 		HPoint keyp = new HPoint(key);
 
 		KDNode.nnbr(m_root, keyp, hr, max_dist_sqd, 0, m_K, nnl);
@@ -252,7 +252,7 @@ public class KDTree {
 	 * @throws KeySizeException
 	 *             on mismatch among lowk.length, uppk.length, or K
 	 */
-	public Object[] range(double[] lowk, double[] uppk) {
+	public Object[] range(float[] lowk, float[] uppk) {
 
 		if (lowk.length != uppk.length) {
 			throw new RuntimeException("KDTree: wrong key size!");

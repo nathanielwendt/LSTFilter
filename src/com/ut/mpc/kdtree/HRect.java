@@ -57,8 +57,8 @@ class HRect {
 	HPoint vmax = new HPoint(d);
 	
 	for (int i=0; i<d; ++i) {
-	    vmin.coord[i] = Double.NEGATIVE_INFINITY;
-	    vmax.coord[i] = Double.POSITIVE_INFINITY;
+	    vmin.coord[i] = Float.NEGATIVE_INFINITY;
+	    vmax.coord[i] = Float.POSITIVE_INFINITY;
 	}
 
 	return new HRect(vmin, vmax);
@@ -80,9 +80,9 @@ class HRect {
     }
 
     // currently unused
-    protected double area () {
+    protected float area () {
 
-	double a = 1;
+	float a = 1;
 
 	for (int i=0; i<min.coord.length; ++i) {
 	    a *= (max.coord[i] - min.coord[i]);

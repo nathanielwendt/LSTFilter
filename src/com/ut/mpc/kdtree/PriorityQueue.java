@@ -27,7 +27,7 @@ class PriorityQueue implements java.io.Serializable {
     /**
      * The maximum priority possible in this priority queue.
      */
-    private double maxPriority = Double.MAX_VALUE;
+    private float maxPriority = Float.MAX_VALUE;
 
     /**
      * This contains the list of objects in the queue.
@@ -37,7 +37,7 @@ class PriorityQueue implements java.io.Serializable {
     /**
      * This contains the list of prioritys in the queue.
      */
-    private double[] value;
+    private float[] value;
 
     /**
      * Holds the number of elements currently in the queue.
@@ -83,7 +83,7 @@ class PriorityQueue implements java.io.Serializable {
      * @param maxPriority
      *            is the maximum possible priority for an object
      */
-    public PriorityQueue(int capacity, double maxPriority) {
+    public PriorityQueue(int capacity, float maxPriority) {
         this.maxPriority = maxPriority;
         init(capacity);
     }
@@ -101,7 +101,7 @@ class PriorityQueue implements java.io.Serializable {
     private void init(int size) {
         capacity = size;
         data = new Object[capacity + 1];
-        value = new double[capacity + 1];
+        value = new float[capacity + 1];
         value[0] = maxPriority;
         data[0] = null;
     }
@@ -119,7 +119,7 @@ class PriorityQueue implements java.io.Serializable {
      *            this is the priority that the object holds in the
      *            <code>PriorityQueue</code>
      */
-    public void add(Object element, double priority) {
+    public void add(Object element, float priority) {
         if (count++ >= capacity) {
             expandCapacity();
         }
@@ -155,7 +155,7 @@ class PriorityQueue implements java.io.Serializable {
         return data[1];
     }
 
-    public double getMaxPriority() {
+    public float getMaxPriority() {
         return value[1];
     }
 
@@ -172,7 +172,7 @@ class PriorityQueue implements java.io.Serializable {
      */
     private void bubbleDown(int pos) {
         Object element = data[pos];
-        double priority = value[pos];
+        float priority = value[pos];
         int child;
         /* hole is position '1' */
         for (; pos * 2 <= count; pos = child) {
@@ -212,7 +212,7 @@ class PriorityQueue implements java.io.Serializable {
      */
     private void bubbleUp(int pos) {
         Object element = data[pos];
-        double priority = value[pos];
+        float priority = value[pos];
         /* when the parent is not less than the child, end */
         while (value[pos / 2] < priority) {
             /* overwrite the child with the parent */
@@ -234,7 +234,7 @@ class PriorityQueue implements java.io.Serializable {
     private void expandCapacity() {
         capacity = count * 2;
         Object[] elements = new Object[capacity + 1];
-        double[] prioritys = new double[capacity + 1];
+        float[] prioritys = new float[capacity + 1];
         System.arraycopy(data, 0, elements, 0, data.length);
         System.arraycopy(value, 0, prioritys, 0, data.length);
         data = elements;
