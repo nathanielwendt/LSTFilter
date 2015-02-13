@@ -3,6 +3,7 @@ package com.ut.mpc.utils;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.ut.mpc.kdtree.KDTree;
 import com.ut.mpc.setup.Constants;
 
 import static com.ut.mpc.setup.Constants.CoverageWindow;
@@ -20,6 +21,7 @@ public class LSTFilter {
 	 */
 	public LSTFilter(STStorage structure){
 		this.structure = structure;
+		//TODO: add internal structure function to hand off state during executions
 	}
 	
 	/**
@@ -66,8 +68,12 @@ public class LSTFilter {
 
 		//snap region to compute to points that actually exist to avoid calculating empty regions
 		STRegion outerBounds = structure.getBoundingBox();
-		mins.updateMax(outerBounds.getMins());
+        mins.updateMax(outerBounds.getMins());
 		maxs.updateMin(outerBounds.getMaxs());
+
+        //make and fill kdtree
+        List<STPoint> boundPoints = structure.range(new STRegion(mins, maxs));
+        KDTreeAdapter kdtree = KDTreeAdapter.makeBalancedTree(3, boundPoints);
 
 		for(float x = mins.getX(); x < maxs.getX(); x = x + xGridGran){
 			for(float y = mins.getY(); y < maxs.getY(); y = y + yGridGran){
@@ -76,7 +82,18 @@ public class LSTFilter {
 					STPoint centerOfRegion = new STPoint(x + xCenterOffset,
 														 y + yCenterOffset,
 														 t + tCenterOffset);
-					regionWeight = this.pointPoK(centerOfRegion);
+
+                    STPoint boundValues = new STPoint(CoverageWindow.SPACE_RADIUS,
+                            CoverageWindow.SPACE_RADIUS,
+                            CoverageWindow.TEMPORAL_RADIUS);
+                    try {
+                        STRegion miniRegion = GPSLib.getSpaceBoundQuick(centerOfRegion, boundValues, SPATIAL_TYPE);
+                        List<STPoint> activePoints = kdtree.range(miniRegion);
+                        //List<STPoint> activePoints = structure.range(miniRegion);
+                        regionWeight = this.getPointsPoK(centerOfRegion, activePoints);
+                    } catch (LSTFilterException e){
+                        e.printStackTrace();
+                    }
 					totalWeight += regionWeight;
 				}
 			}
@@ -103,7 +120,6 @@ public class LSTFilter {
 	 * Retrieves the PoK for a given point.
 	 * Uses the default space bound values to form a region around the point
 	 * @param point - point to query around
-	 * @param asPercentage - return percentage or raw number (without total weight adjustment)
 	 * @return PoK value
 	 */
 	public double pointPoK(STPoint point){

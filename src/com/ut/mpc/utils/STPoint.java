@@ -9,29 +9,6 @@ public class STPoint {
 	private float y = DEFAULT_VAL;
 	private float t = DEFAULT_VAL;
 	
-	public static void main(String[] args){
-		STPoint point = new STPoint(1f,1f,10f);
-		System.out.println(point.getTimeRelevance(10.5f, 2));
-		System.out.println(point.getTimeRelevance(9.5f, 2));
-		System.out.println(point.getTimeRelevance(10f, 2));
-		
-		point = new STPoint(1f,1f,100f);
-		System.out.println(point.getTimeRelevance(100.5f, 2));
-		System.out.println(point.getTimeRelevance(99.5f, 2));
-		System.out.println(point.getTimeRelevance(100f, 2));
-		
-		point = new STPoint(1f,1f,1000f);
-		System.out.println(point.getTimeRelevance(1000.5f, 2));
-		System.out.println(point.getTimeRelevance(999.5f, 2));
-		System.out.println(point.getTimeRelevance(1000f, 2));
-		
-		point = new STPoint(1f,1f,1f);
-		System.out.println(point.getTimeRelevance(1.5f, 2));
-		System.out.println(point.getTimeRelevance(0.5f, 2));
-		System.out.println(point.getTimeRelevance(1f, 2));
-
-	}
-	
 	public STPoint(){}
 
 	public STPoint(STPoint other){

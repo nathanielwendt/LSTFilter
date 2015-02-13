@@ -204,11 +204,11 @@ public class LSTFilterTests {
 		result = filter.windowPoK(new STRegion(min, max), true);
 		assertEquals(1.0f, result, .00001);
 		
-		min = new STPoint(10f,20f,200f);
+		max = new STPoint(10f,20f,200f);
 		result = filter.windowPoK(new STRegion(min, max), true);
 		assertEquals(1.0f, result, .00001);
 		
-		min = new STPoint(9f,2000f,22f);
+		max = new STPoint(9f,2000f,22f);
 		result = filter.windowPoK(new STRegion(min, max), true);
 		assertEquals(1.0f, result, .00001);
 	}

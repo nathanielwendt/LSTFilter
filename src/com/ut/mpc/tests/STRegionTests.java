@@ -30,7 +30,7 @@ public class STRegionTests {
 	}
 	
 	@Test
-	public void testAddSingfePoint() {
+	public void testAddSinglePoint() {
 		STPoint p1 = new STPoint(0f,8f,23f);
 		
 		STRegion range = new STRegion();
