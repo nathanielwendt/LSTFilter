@@ -4,8 +4,6 @@
  */
 
 package com.ut.mpc.utils;
-import com.sun.xml.internal.bind.v2.model.annotation.Quick;
-
 import java.util.List;
 
 public class Quicksort  {
