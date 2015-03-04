@@ -11,6 +11,17 @@ public class STPoint {
 	
 	public STPoint(){}
 
+    public static void main(String[] args){
+        STPoint point = new STPoint(2.2f,3.3f,99.99f);
+        STPoint point2 = STPoint.fromString(point.toString());
+        System.out.println(point2);
+        System.out.println(point.equals(point2));
+
+        String stuff = "lfjeklfe|lfkejflke";
+        String[] splits = stuff.split("\\|");
+        System.out.println(splits[0]);
+    }
+
 	public STPoint(STPoint other){
 		this.x = other.x;
 		this.y = other.y;
@@ -61,7 +72,7 @@ public class STPoint {
 		return t;
 	}
 
-	public void setT(Long t) {
+	public void setT(float t) {
 		this.t = t;
 	}
 	
@@ -113,6 +124,26 @@ public class STPoint {
 			   " Y: " + String.valueOf(this.y) + 
 			   " T: " + String.valueOf(this.t);
 	}
+
+    public static STPoint fromString(String input){
+        int xIndex = input.indexOf("X:");
+        int yIndex = input.indexOf("Y:");
+        int tIndex = input.indexOf("T:");
+        STPoint point = new STPoint();
+        String xVal = "";
+        String yVal = "";
+        String tVal = "";
+        for(int i = 0; i < input.length(); i++){
+            if(i > xIndex + 2 && i < yIndex){
+                xVal += input.charAt(i);
+            } else if(i > yIndex + 2 && i < tIndex){
+                yVal += input.charAt(i);
+            } else if(i > tIndex + 2){
+                tVal += input.charAt(i);
+            }
+        }
+        return new STPoint(Float.parseFloat(xVal), Float.parseFloat(yVal), Float.parseFloat(tVal));
+    }
 	
 	//linear decay function with any value for slope
 	public double getTimeRelevance(float reference, float decay){
@@ -124,5 +155,13 @@ public class STPoint {
 		return ((-CoverageWindow.TEMPORAL_WEIGHT / CoverageWindow.TEMPORAL_RADIUS) * offset +
 				CoverageWindow.TEMPORAL_WEIGHT) / CoverageWindow.TEMPORAL_WEIGHT;
 	}
+
+    public static STPoint minPoint(){
+        return new STPoint(-Float.MAX_VALUE, -Float.MAX_VALUE, -Float.MAX_VALUE);
+    }
+
+    public static STPoint maxPoint(){
+        return new STPoint(Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE);
+    }
 	
 }

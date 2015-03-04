@@ -129,6 +129,7 @@ public class LSTFilter {
 		try {
 			STRegion miniRegion = GPSLib.getSpaceBoundQuick(point, boundValues, SPATIAL_TYPE);
 			List<STPoint> activePoints = structure.range(miniRegion);
+            System.out.println(activePoints.size());
 			return this.getPointsPoK(point, activePoints);
 		} catch (LSTFilterException e){
 			e.printStackTrace();
@@ -278,6 +279,9 @@ public class LSTFilter {
 	
 	private void smartInsert(STPoint point) {
 		double pok = this.pointPoK(point);
+        if(pok > 0.0001f){
+            System.out.println(pok);
+        }
 		if(pok <= Constants.SmartInsert.INS_THRESH){
 			this.stdInsert(point);
 		}
