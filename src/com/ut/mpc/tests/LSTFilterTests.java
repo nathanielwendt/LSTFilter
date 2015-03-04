@@ -18,83 +18,6 @@ import com.ut.mpc.utils.STRegion;
 import com.ut.mpc.utils.STStorage;
 
 public class LSTFilterTests {
-
-	public static class SpatialArray implements STStorage {
-		public int size = 0;
-		public List<STPoint> points = new ArrayList<STPoint>();
-
-		@Override
-		public int getSize() {
-			return this.size;
-		}
-
-		@Override
-		public void insert(STPoint point) {
-			this.points.add(point);
-			this.size++;
-		}
-
-		@Override
-		public List<STPoint> range(STRegion range) {
-			List<STPoint> results = new ArrayList<STPoint>();
-			STPoint mins = range.getMins();
-			STPoint maxs = range.getMaxs();
-
-			for(STPoint point : this.points){
-                if(mins.hasX() && maxs.hasX()){
-                    if(! (point.getX() >= mins.getX() && point.getX() <= maxs.getX())){
-                        continue;
-                    }
-                }
-
-                if(mins.hasY() && maxs.hasY()){
-                    if(! (point.getY() >= mins.getY() && point.getY() <= maxs.getY())){
-                        continue;
-                    }
-                }
-
-                if(mins.hasT() && maxs.hasT()){
-                    if(! (point.getT() >= mins.getT() && point.getT() <= maxs.getT())){
-                        continue;
-                    }
-                }
-
-				results.add(point);
-			}
-			return results;
-		}
-
-		@Override
-		public List<STPoint> nearestNeighbor(STPoint needle, int n) {
-			// TODO Auto-generated method stub
-			return null;
-		}
-
-		@Override
-		public List<STPoint> getSequence(STPoint start, STPoint end) {
-			// TODO Auto-generated method stub
-			return null;
-		}
-
-		@Override
-		public void clear() {
-			this.points = new ArrayList<STPoint>();
-		}
-		
-		@Override
-		public STRegion getBoundingBox(){
-			STPoint min = new STPoint(-Float.MAX_VALUE,-Float.MAX_VALUE,-Float.MAX_VALUE);
-			STPoint max = new STPoint(Float.MAX_VALUE,Float.MAX_VALUE,Float.MAX_VALUE);
-			List<STPoint> allPoints = this.range(new STRegion(min,max));
-			STPoint minBounds = new STPoint();
-			STPoint maxBounds = new STPoint();
-			for(STPoint point : allPoints){
-				minBounds.updateMin(point);
-				maxBounds.updateMax(point);
-			}
-			return new STRegion(minBounds,maxBounds);
-		}
-	}
 	
 	@Before
 	public void setUp(){
@@ -284,5 +207,35 @@ public class LSTFilterTests {
         max.setT(.5f);
         double result = filter.windowPoK(new STRegion(min, max));
         assertEquals(0f, result, .0001f);
+    }
+
+    @Test
+    public void testNN(){
+        SpatialArray arr = new SpatialArray();
+        arr.insert(new STPoint(0,0,0));
+        arr.insert(new STPoint(1,1,1));
+        arr.insert(new STPoint(2,2,2));
+        arr.insert(new STPoint(3,3,3));
+
+        List<STPoint> nn = arr.nearestNeighbor(new STPoint(3,3,4), 1);
+        assertEquals(new STPoint(3,3,3), nn.get(0));
+
+        nn = arr.nearestNeighbor(new STPoint(2.6f,2.6f,2.6f), 1);
+        assertEquals(new STPoint(3,3,3), nn.get(0));
+    }
+
+    @Test
+    public void testNNSparse(){
+        SpatialArray arr = new SpatialArray();
+        arr.insert(new STPoint(100,100,100));
+        arr.insert(new STPoint(101,101,101));
+        arr.insert(new STPoint(102,102,103));
+        arr.insert(new STPoint(104,104,104));
+
+        List<STPoint> nn = arr.nearestNeighbor(new STPoint(0,0,0), 1);
+        assertEquals(new STPoint(100,100,100), nn.get(0));
+
+        nn = arr.nearestNeighbor(new STPoint(2000,2000,2000), 1);
+        assertEquals(new STPoint(104,104,104), nn.get(0));
     }
 }

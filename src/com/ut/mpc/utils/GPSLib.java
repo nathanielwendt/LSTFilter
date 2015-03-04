@@ -15,18 +15,18 @@ public class GPSLib {
         STPoint newMin = new STPoint();
         STPoint newMax = new STPoint();
         if(point.hasX() && boundValues.hasX()){
-            newMin.setX(point.getX() + boundValues.getX());
-            newMax.setX(point.getX() - boundValues.getX());
+            newMin.setX(point.getX() - boundValues.getX());
+            newMax.setX(point.getX() + boundValues.getX());
         }
 
         if(point.hasY() && boundValues.hasY()){
-            newMin.setY(point.getY() + boundValues.getY());
-            newMax.setY(point.getY() - boundValues.getY());
+            newMin.setY(point.getY() - boundValues.getY());
+            newMax.setY(point.getY() + boundValues.getY());
         }
 
         if(point.hasT() && boundValues.hasT()){
-            newMin.setT(point.getT() + boundValues.getT());
-            newMax.setT(point.getT() - boundValues.getT());
+            newMin.setT(point.getT() - boundValues.getT());
+            newMax.setT(point.getT() + boundValues.getT());
         }
 
 		return new STRegion(newMin, newMax);
@@ -80,12 +80,12 @@ public class GPSLib {
         if(!p1.hasT() || !p2.hasT()){
             return spatialDistanceBetween(p1, p2, type);
         } else if((!p1.hasX() || !p2.hasX())){
-            p1.setX(0);
-            p2.setX(0);
+            p1.setX(-Float.MAX_VALUE);
+            p2.setX(-Float.MAX_VALUE);
             return spatialTemporalDistanceBetween(p1, p2, type);
         } else if(!p1.hasY() || !p2.hasY()){
-            p1.setY(0);
-            p2.setY(0);
+            p1.setY(-Float.MAX_VALUE);
+            p2.setY(-Float.MAX_VALUE);
             return spatialTemporalDistanceBetween(p1, p2, type);
         } else {
             return spatialTemporalDistanceBetween(p1, p2, type);
