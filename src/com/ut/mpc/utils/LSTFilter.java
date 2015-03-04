@@ -1,10 +1,9 @@
 package com.ut.mpc.utils;
 
+import com.ut.mpc.setup.Constants;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import com.ut.mpc.kdtree.KDTree;
-import com.ut.mpc.setup.Constants;
 
 import static com.ut.mpc.setup.Constants.CoverageWindow;
 import static com.ut.mpc.setup.Constants.SPATIAL_TYPE;
@@ -191,12 +190,14 @@ public class LSTFilter {
         for(STPoint currPoint : points){
 			try {
 				spatialDistance = GPSLib.spatialDistanceBetween(center, currPoint, SPATIAL_TYPE);
+                temporalDistance = GPSLib.temporalDistanceBetween(center, currPoint);
 			} catch (LSTFilterException e){
 				e.printStackTrace();
 				spatialDistance = 0.0;
+                temporalDistance = 0.0;
 			}
 			
-			temporalDistance = Math.abs(center.getT() - currPoint.getT());
+			//temporalDistance = Math.abs(center.getT() - currPoint.getT());
 			spatialCont =  (-CoverageWindow.SPACE_DECAY * Math.min(spatialDistance,CoverageWindow.SPACE_RADIUS));
 			temporalCont = (-CoverageWindow.TEMPORAL_DECAY * Math.min(temporalDistance,CoverageWindow.TEMPORAL_RADIUS));
 			contribution = spatialCont + temporalCont + CoverageWindow.TOTAL_WEIGHT;

@@ -8,11 +8,11 @@ public class Constants {
 		public static float TOTAL_WEIGHT = 2;
 		
 		public static float SPACE_WEIGHT = 1;
-		public static float SPACE_RADIUS = 1;
+		public static float SPACE_RADIUS = 10;
 		public static float SPACE_DECAY = SPACE_WEIGHT / (SPACE_RADIUS);
 		
 		public static float TEMPORAL_WEIGHT = TOTAL_WEIGHT - 1;
-		public static float TEMPORAL_RADIUS = 1f;
+		public static float TEMPORAL_RADIUS = 10;
 		public static float TEMPORAL_DECAY = TEMPORAL_WEIGHT / (TEMPORAL_RADIUS);
 		
 		//TODO: add SPACE-TEMPORAL Trim so nearby doesn't need to trim if they are insignificant points
