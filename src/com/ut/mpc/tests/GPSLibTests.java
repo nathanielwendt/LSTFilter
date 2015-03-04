@@ -53,8 +53,8 @@ public class GPSLibTests {
 			STRegion region = GPSLib.getSpaceBoundQuick(point, radius, Constants.SpatialType.GPS);
 			STPoint mins = region.getMins();
 			STPoint maxs = region.getMaxs();
-			assertEquals(mins, new STPoint(.991f,1.999f,2f));
-			assertEquals(maxs, new STPoint(1.009f,2.001f,4f));
+			assertEquals(mins, new STPoint(0f,1f,2f));
+			assertEquals(maxs, new STPoint(2f,3f,4f));
 		} catch (LSTFilterException e){
 			fail();
 		}

@@ -7,21 +7,52 @@ import java.util.List;
 
 public class KDTreeAdapter {
 	public KDTree kdtree;
+    public int dims;
+    public int offsetDim;
 	
 	public KDTreeAdapter(int dims){
+        this.dims = dims;
         kdtree = new KDTree(dims);
 	}
 	
 	public void insert(STPoint point){
-        float[] rawPoint = new float[]{point.getX(), point.getY(), point.getT()};
+        float[] rawPoint;
+        if(dims == 3 && offsetDim == 0){
+            rawPoint = new float[]{point.getX(), point.getY(), point.getT()};
+        } else if(dims == 2 && offsetDim == 0){
+            rawPoint = new float[]{point.getX(), point.getY()};
+        } else if(dims == 1 && offsetDim == 2){
+            rawPoint = new float[]{point.getT()};
+        } else {
+            throw new RuntimeException("unsupported dims and offset dims settings");
+        }
         kdtree.insert(rawPoint, point);
 	}
+
+    //serves when have dimen < 3 but don't want default ordering of x,y,t
+    //for example, when want 1 dimensional but don't want to use x, set offset to 2 to get t
+    public void setOffsetDim(int offset){
+        this.offsetDim = offset;
+    }
 
     public List<STPoint> range(STRegion region){
         STPoint mins = region.getMins();
         STPoint maxs = region.getMaxs();
-        float[] minsRaw = new float[]{mins.getX(),mins.getY(),mins.getT()};
-        float[] maxsRaw = new float[]{maxs.getX(),maxs.getY(),maxs.getT()};
+
+        float[] minsRaw;
+        float[] maxsRaw;
+        if(dims == 3 && offsetDim == 0){
+            minsRaw = new float[]{mins.getX(), mins.getY(), mins.getT()};
+            maxsRaw = new float[]{maxs.getX(), maxs.getY(), maxs.getT()};
+        } else if(dims == 2 && offsetDim == 0){
+            minsRaw = new float[]{mins.getX(), mins.getY()};
+            maxsRaw = new float[]{maxs.getX(), maxs.getY()};
+        } else if(dims == 1 && offsetDim == 2){
+            minsRaw = new float[]{mins.getT()};
+            maxsRaw = new float[]{maxs.getT()};
+        } else {
+            throw new RuntimeException("unsupported dims and offset dims settings");
+        }
         Object[] results = kdtree.range(minsRaw, maxsRaw);
         List<STPoint> points = new ArrayList<STPoint>();
         for(Object result : results){
@@ -30,8 +61,9 @@ public class KDTreeAdapter {
         return points;
     }
 
-    public static KDTreeAdapter makeBalancedTree(int dims, List<STPoint> points){
+    public static KDTreeAdapter makeBalancedTree(int dims, int offsetDim, List<STPoint> points){
         KDTreeAdapter kdtree = new KDTreeAdapter(dims);
+        kdtree.offsetDim = offsetDim;
         int treeSize = points.size();
         kdtree.makeTreeRecurse(points,0,treeSize - 1, 0);
         return kdtree;
@@ -46,13 +78,17 @@ public class KDTreeAdapter {
             int median = ((end - start) / 2) + start;
             this.insert(points.get(median));
 
-            int nextDim = (dim + 1) % 3;
+            int nextDim = ((dim + 1) % this.dims) + this.offsetDim;
             //recurse on left part of array
             makeTreeRecurse(points, start, median - 1, nextDim);
 
             //recurse on right part of array
             makeTreeRecurse(points, median + 1, end, nextDim);
         }
+    }
+
+    public int getSize(){
+        return kdtree.getSize();
     }
 
 }

@@ -59,6 +59,18 @@ public class Constants {
 		}
 	}
 
+    public static void setTestDefaults(){
+        CoverageWindow.TOTAL_WEIGHT = 2;
+
+        CoverageWindow.SPACE_WEIGHT = 1;
+        CoverageWindow.SPACE_RADIUS = 10;
+        CoverageWindow.SPACE_DECAY = CoverageWindow.SPACE_WEIGHT / (CoverageWindow.SPACE_RADIUS);
+
+        CoverageWindow.TEMPORAL_WEIGHT = CoverageWindow.TOTAL_WEIGHT - 1;
+        CoverageWindow.TEMPORAL_RADIUS = 10;
+        CoverageWindow.TEMPORAL_DECAY = CoverageWindow.TEMPORAL_WEIGHT / (CoverageWindow.TEMPORAL_RADIUS);
+    }
+
 	/*
 	 * Defaults configured for the Crawded Mobi Data Set
 	 * Distance is in meters

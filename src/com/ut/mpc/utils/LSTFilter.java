@@ -1,5 +1,6 @@
 package com.ut.mpc.utils;
 
+import com.ut.mpc.kdtree.KDTree;
 import com.ut.mpc.setup.Constants;
 
 import java.util.ArrayList;
@@ -53,38 +54,73 @@ public class LSTFilter {
 	public double windowPoK(STRegion region, boolean snap) {
 		STPoint mins = region.getMins();
 		STPoint maxs = region.getMaxs();
-		float xGridGran = CoverageWindow.X_GRID_GRAN;
-		float yGridGran = CoverageWindow.Y_GRID_GRAN;
-		float tGridGran = CoverageWindow.T_GRID_GRAN;
-		double totalWeight = 0.0;
-		double regionWeight = 0.0;
-		
-		float xCenterOffset = xGridGran / 2;
-		float yCenterOffset = yGridGran / 2;
-		float tCenterOffset = tGridGran / 2;
 
-		double totalGridCount = this.getGridCount(mins,maxs, new STPoint(xGridGran, yGridGran, tGridGran));
+        float xGridGran = CoverageWindow.X_GRID_GRAN;
+        float yGridGran = CoverageWindow.Y_GRID_GRAN;
+        float tGridGran = CoverageWindow.T_GRID_GRAN;
 
-		//snap region to compute to points that actually exist to avoid calculating empty regions
-		STRegion outerBounds = structure.getBoundingBox();
-        mins.updateMax(outerBounds.getMins());
-		maxs.updateMin(outerBounds.getMaxs());
+        float xCenterOffset = xGridGran / 2;
+        float yCenterOffset = yGridGran / 2;
+        float tCenterOffset = tGridGran / 2;
 
-        //make and fill kdtree
+        //these points must have 3 dimensions
         List<STPoint> boundPoints = structure.range(new STRegion(mins, maxs));
-        KDTreeAdapter kdtree = KDTreeAdapter.makeBalancedTree(3, boundPoints);
 
-		for(float x = mins.getX(); x < maxs.getX(); x = x + xGridGran){
-			for(float y = mins.getY(); y < maxs.getY(); y = y + yGridGran){
-				for(float t = mins.getT(); t < maxs.getT(); t = t + tGridGran){
+        if(boundPoints.size() == 0){
+            return 0.0;
+        }
+
+        STPoint minBounds = new STPoint();
+        STPoint maxBounds = new STPoint();
+        for(STPoint point : boundPoints){
+            minBounds.updateMin(point);
+            maxBounds.updateMax(point);
+        }
+
+        System.out.println(minBounds);
+        System.out.println(maxBounds);
+
+        //center align region
+        STPoint.add(minBounds, new STPoint(-xCenterOffset, -yCenterOffset, -tCenterOffset));
+        STPoint.add(maxBounds, new STPoint(xCenterOffset, yCenterOffset, tCenterOffset));
+
+
+        //building cache index might not have all 3 dimensions, must create accordingly
+        double totalGridCount = 0.0;
+        KDTreeAdapter kdtree;
+        if(mins.hasX() && mins.hasY() && mins.hasT()){
+            //spatiotemporal query
+            kdtree = KDTreeAdapter.makeBalancedTree(3,0,boundPoints);
+            if(snap){
+                totalGridCount = this.getGridCount(minBounds, maxBounds, new STPoint(xGridGran, yGridGran, tGridGran));
+            } else {
+                totalGridCount = this.getGridCount(mins,maxs, new STPoint(xGridGran, yGridGran, tGridGran));
+            }
+        } else if(mins.hasX() && mins.hasY() && !mins.hasT()){
+            //spatial query
+            kdtree = KDTreeAdapter.makeBalancedTree(2,0,boundPoints);
+            totalGridCount = this.getGridCount(minBounds, maxBounds, new STPoint(xGridGran, yGridGran, tGridGran));
+        } else if(!mins.hasX() && !mins.hasY() && mins.hasT()){
+            //temporal query
+            kdtree = KDTreeAdapter.makeBalancedTree(1,2,boundPoints);
+            totalGridCount = this.getGridCount(minBounds, maxBounds, new STPoint(xGridGran, yGridGran, tGridGran));
+        } else {
+            return 0.0;
+        }
+
+        STPoint boundValues = new STPoint(CoverageWindow.SPACE_RADIUS,
+                CoverageWindow.SPACE_RADIUS,
+                CoverageWindow.TEMPORAL_RADIUS);
+
+        double totalWeight = 0.0;
+        double regionWeight = 0.0;
+		for(float x = minBounds.getX(); x < maxBounds.getX(); x = x + xGridGran){
+			for(float y = minBounds.getY(); y < maxBounds.getY(); y = y + yGridGran){
+				for(float t = minBounds.getT(); t < maxBounds.getT(); t = t + tGridGran){
 
 					STPoint centerOfRegion = new STPoint(x + xCenterOffset,
 														 y + yCenterOffset,
 														 t + tCenterOffset);
-
-                    STPoint boundValues = new STPoint(CoverageWindow.SPACE_RADIUS,
-                            CoverageWindow.SPACE_RADIUS,
-                            CoverageWindow.TEMPORAL_RADIUS);
                     try {
                         STRegion miniRegion = GPSLib.getSpaceBoundQuick(centerOfRegion, boundValues, SPATIAL_TYPE);
                         List<STPoint> activePoints = kdtree.range(miniRegion);
@@ -97,13 +133,112 @@ public class LSTFilter {
 				}
 			}
 		}
-		if(snap){
-			double effectiveGridCount = this.getGridCount(mins,maxs, new STPoint(xGridGran, yGridGran, tGridGran));
-			return totalWeight / effectiveGridCount;
-		} else {
-			return totalWeight / totalGridCount;
-		}
+        return totalWeight / totalGridCount;
+//		if(snap){
+//			double effectiveGridCount = this.getGridCount(mins,maxs, new STPoint(xGridGran, yGridGran, tGridGran));
+//			return totalWeight / effectiveGridCount;
+//		} else {
+//			return totalWeight / totalGridCount;
+//		}
 	}
+
+//
+//    private double gridCompST(STPoint mins, STPoint maxs, float xGridGran, float yGridGran, float tGridGran){
+//        double totalWeight = 0.0;
+//        double regionWeight = 0.0;
+//
+//        float xCenterOffset = xGridGran / 2;
+//        float yCenterOffset = yGridGran / 2;
+//        float tCenterOffset = tGridGran / 2;
+//
+//        List<STPoint> boundPoints = structure.range(new STRegion(mins, maxs));
+//        KDTreeAdapter kdtree = KDTreeAdapter.makeBalancedTree(3,0,boundPoints);
+//
+//
+//
+//        for(float x = mins.getX(); x < maxs.getX(); x = x + xGridGran){
+//            for(float y = mins.getY(); y < maxs.getY(); y = y + yGridGran){
+//                for(float t = mins.getT(); t < maxs.getT(); t = t + tGridGran){
+//
+//                    STPoint centerOfRegion = new STPoint(x + xCenterOffset,
+//                            y + yCenterOffset,
+//                            t + tCenterOffset);
+//
+//                    try {
+//                        STRegion miniRegion = GPSLib.getSpaceBoundQuick(centerOfRegion, boundValues, SPATIAL_TYPE);
+//                        List<STPoint> activePoints = kdtree.range(miniRegion);
+//                        //List<STPoint> activePoints = structure.range(miniRegion);
+//                        regionWeight = this.getPointsPoK(centerOfRegion, activePoints);
+//                    } catch (LSTFilterException e){
+//                        e.printStackTrace();
+//                    }
+//                    totalWeight += regionWeight;
+//                }
+//            }
+//        }
+//        return totalWeight;
+//    }
+//
+//    private double gridCompS(STPoint mins, STPoint maxs, float xGridGran, float yGridGran){
+//        double totalWeight = 0.0;
+//        double regionWeight = 0.0;
+//
+//        float xCenterOffset = xGridGran / 2;
+//        float yCenterOffset = yGridGran / 2;
+//
+//        List<STPoint> boundPoints = structure.range(new STRegion(mins, maxs));
+//        KDTreeAdapter kdtree = KDTreeAdapter.makeBalancedTree(2,0,boundPoints);
+//
+//        STPoint boundValues = new STPoint(CoverageWindow.SPACE_RADIUS,
+//                CoverageWindow.SPACE_RADIUS);
+//
+//        for(float x = mins.getX(); x < maxs.getX(); x = x + xGridGran){
+//            for(float y = mins.getY(); y < maxs.getY(); y = y + yGridGran){
+//                STPoint centerOfRegion = new STPoint(x + xCenterOffset,
+//                                                        y + yCenterOffset);
+//                try {
+//                    STRegion miniRegion = GPSLib.getSpaceBoundQuick(centerOfRegion, boundValues, SPATIAL_TYPE);
+//                    List<STPoint> activePoints = kdtree.range(miniRegion);
+//                    //List<STPoint> activePoints = structure.range(miniRegion);
+//                    regionWeight = this.getPointsPoK(centerOfRegion, activePoints);
+//                } catch (LSTFilterException e){
+//                    e.printStackTrace();
+//                }
+//                totalWeight += regionWeight;
+//            }
+//        }
+//        return totalWeight;
+//    }
+//
+//    private double gridCompT(STPoint mins, STPoint maxs, float tGridGran){
+//        double totalWeight = 0.0;
+//        double regionWeight = 0.0;
+//
+//        float tCenterOffset = tGridGran / 2;
+//
+//        List<STPoint> boundPoints = structure.range(new STRegion(mins, maxs));
+//        //effectively a binary search tree
+//        KDTreeAdapter kdtree = KDTreeAdapter.makeBalancedTree(1,2,boundPoints);
+//
+//        STPoint boundValues = new STPoint();
+//        boundValues.setT(CoverageWindow.TEMPORAL_RADIUS);
+//
+//        for(float t = mins.getT(); t < maxs.getT(); t = t + tGridGran){
+//            STPoint centerOfRegion = new STPoint();
+//            centerOfRegion.setT(t + tCenterOffset);
+//            try {
+//                STRegion miniRegion = GPSLib.getSpaceBoundQuick(centerOfRegion, boundValues, SPATIAL_TYPE);
+//                List<STPoint> activePoints = kdtree.range(miniRegion);
+//                //List<STPoint> activePoints = structure.range(miniRegion);
+//                regionWeight = this.getPointsPoK(centerOfRegion, activePoints);
+//            } catch (LSTFilterException e){
+//                e.printStackTrace();
+//            }
+//            totalWeight += regionWeight;
+//        }
+//
+//        return totalWeight;
+//    }
 	
 	private double getGridCount(STPoint ref1, STPoint ref2, STPoint granularities){
 		double xComp = (Math.abs(ref1.getX() - ref2.getX())) / granularities.getX();
@@ -132,7 +267,7 @@ public class LSTFilter {
 			return this.getPointsPoK(point, activePoints);
 		} catch (LSTFilterException e){
 			e.printStackTrace();
-			return Float.MIN_VALUE;
+			return Float.NaN;
 		}
 	}
 	

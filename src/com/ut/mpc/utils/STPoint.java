@@ -3,7 +3,7 @@ package com.ut.mpc.utils;
 import com.ut.mpc.setup.Constants.CoverageWindow;
 
 public class STPoint {
-	private static float DEFAULT_VAL = Float.NEGATIVE_INFINITY;
+	private static float DEFAULT_VAL = Float.NaN;
 	private float x = DEFAULT_VAL;
 	private float y = DEFAULT_VAL;
 	private float t = DEFAULT_VAL;
@@ -52,7 +52,7 @@ public class STPoint {
 	}
 	
 	public boolean hasX(){
-		return this.x != DEFAULT_VAL;
+        return !Float.isNaN(this.x);
 	}
 
 	public float getY() {
@@ -64,7 +64,7 @@ public class STPoint {
 	}
 	
 	public boolean hasY(){
-		return this.y != DEFAULT_VAL;
+        return !Float.isNaN(this.y);
 	}
 
 	public float getT() {
@@ -75,32 +75,46 @@ public class STPoint {
 		this.t = t;
 	}
 	
-	public boolean hasT(){
-		return this.t != DEFAULT_VAL;
-	}
+	public boolean hasT(){ return !Float.isNaN(this.t); }
 	
 	public void updateMin(STPoint next){
-		if(next.getX() < this.getX()){
-			this.x = next.getX();
-		}
-		if(next.getY() < this.getY()){
-			this.y = next.getY();
-		}
-		if(next.getT() < this.getT()){
-			this.t = next.getT();
-		}
+        if(!this.hasX()){
+            this.x = next.getX();
+        } else if(next.hasX() && (next.getX() < this.getX())){
+            this.x = next.getX();
+        }
+
+        if(!this.hasY()){
+            this.y = next.getY();
+        } else if(next.hasY() && (next.getY() < this.getY())){
+            this.y = next.getY();
+        }
+
+        if(!this.hasT()) {
+            this.t = next.getT();
+        } else if(next.hasT() && (next.getT() < this.getT())){
+            this.t = next.getT();
+        }
 	}
 	
 	public void updateMax(STPoint next){
-		if(next.getX() > this.getX()){
-			this.x = next.getX();
-		}
-		if(next.getY() > this.getY()){
-			this.y = next.getY();
-		}
-		if(next.getT() > this.getT()){
-			this.t = next.getT();
-		}
+        if(!this.hasX()){
+            this.x = next.getX();
+        } else if(next.hasX() && (next.getX() > this.getX())){
+            this.x = next.getX();
+        }
+
+        if(!this.hasY()){
+            this.y = next.getY();
+        } else if(next.hasY() && (next.getY() > this.getY())){
+            this.y = next.getY();
+        }
+
+        if(!this.hasT()) {
+            this.t = next.getT();
+        } else if(next.hasT() && (next.getT() > this.getT())){
+            this.t = next.getT();
+        }
 	}
 	
 	@Override
@@ -154,6 +168,19 @@ public class STPoint {
 		return ((-CoverageWindow.TEMPORAL_WEIGHT / CoverageWindow.TEMPORAL_RADIUS) * offset +
 				CoverageWindow.TEMPORAL_WEIGHT) / CoverageWindow.TEMPORAL_WEIGHT;
 	}
+
+    //for each dimension that is valid in both p1 and p2, p1 now reflects the sum of p1 and p2 along that dimension
+    public static void add(STPoint p1, STPoint p2){
+        if(p1.hasX() && p2.hasX()){
+            p1.setX(p1.getX() + p2.getX());
+        }
+        if(p1.hasY() && p2.hasY()){
+            p1.setY(p1.getY() + p2.getY());
+        }
+        if(p1.hasT() && p2.hasT()){
+            p1.setT(p1.getT() + p2.getT());
+        }
+    }
 
     public static STPoint minPoint(){
         return new STPoint(-Float.MAX_VALUE, -Float.MAX_VALUE, -Float.MAX_VALUE);
