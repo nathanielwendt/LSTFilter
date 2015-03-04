@@ -1,10 +1,9 @@
 package com.ut.mpc.utils;
 
-import com.ut.mpc.setup.Constants;
 import com.ut.mpc.setup.Constants.CoverageWindow;
 
 public class STPoint {
-	private static float DEFAULT_VAL = Float.MIN_NORMAL;
+	private static float DEFAULT_VAL = Float.NEGATIVE_INFINITY;
 	private float x = DEFAULT_VAL;
 	private float y = DEFAULT_VAL;
 	private float t = DEFAULT_VAL;

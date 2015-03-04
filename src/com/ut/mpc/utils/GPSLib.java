@@ -7,34 +7,29 @@ public class GPSLib {
 	private static float latitudeKM = .001f;
 
 	/*
-	 * Retrieves a space bound around a given point with given radius values using GPS estimation, if
-	 * the depicted type is GPS type
+	 * Retrieves a space bound around a given point with given radius values
 	 * @param point - point around which to form the bound
-	 * @param boundValues - point representing expansion values in each dimension.  These are 
-	 * 		  raw values that need to be transferred to coordinate system before use
+	 * @param boundValues - point representing expansion values in each dimension.
 	 */
 	public static STRegion getSpaceBoundQuick(STPoint point, STPoint boundValues, Constants.SpatialType type) throws LSTFilterException{
-		STRegion region = new STRegion();
-		
-		float xOffset, yOffset, tOffset;
-		if(type == Constants.SpatialType.GPS){
-			xOffset = boundValues.getX();
-			yOffset = boundValues.getY();
-			tOffset = boundValues.getT();
-		} else if(type == Constants.SpatialType.Meters){
-			xOffset = boundValues.getX();
-			yOffset = boundValues.getY();
-			tOffset = boundValues.getT();
-		} else {
-			throw new LSTFilterException("Unrecognized coordinate type for GPSLib");
-		}
-		region.addPoint(new STPoint(point.getX() + xOffset,
-									point.getY() + yOffset,
-									point.getT() + tOffset));
-		region.addPoint(new STPoint(point.getX() - xOffset,
-									point.getY() - yOffset,
-									point.getT() - tOffset));
-		return region;
+        STPoint newMin = new STPoint();
+        STPoint newMax = new STPoint();
+        if(point.hasX() && boundValues.hasX()){
+            newMin.setX(point.getX() + boundValues.getX());
+            newMax.setX(point.getX() - boundValues.getX());
+        }
+
+        if(point.hasY() && boundValues.hasY()){
+            newMin.setY(point.getY() + boundValues.getY());
+            newMax.setY(point.getY() - boundValues.getY());
+        }
+
+        if(point.hasT() && boundValues.hasT()){
+            newMin.setT(point.getT() + boundValues.getT());
+            newMax.setT(point.getT() - boundValues.getT());
+        }
+
+		return new STRegion(newMin, newMax);
 	}
 	
 	public static double spatialDistanceBetween(STPoint p1, STPoint p2, Constants.SpatialType type) throws LSTFilterException{
@@ -55,6 +50,47 @@ public class GPSLib {
 			throw new LSTFilterException("Unrecognized coordinate type for GPSLib");
 		}
 	}
+
+    public static double temporalDistanceBetween(STPoint p1, STPoint p2){
+        return Math.abs(p1.getT() - p2.getT());
+    }
+
+    public static double spatialTemporalDistanceBetween(STPoint p1, STPoint p2, Constants.SpatialType type) throws LSTFilterException {
+        if(type == Constants.SpatialType.GPS){
+            double R = 6371;
+            double lat1 = Math.toRadians(p1.getY());
+            double lat2 = Math.toRadians(p2.getY());
+            double long1 = Math.toRadians(p1.getX());
+            double long2 = Math.toRadians(p2.getX());
+            double d = Math.acos(Math.sin(lat1) * Math.sin(lat2) +
+                    Math.cos(lat1) * Math.cos(lat2) *
+                            Math.cos(long2 - long1)) * R;
+            return Math.sqrt(Math.pow(d,2) + Math.pow(p1.getT() - p2.getT(), 2));
+        } else if(type == Constants.SpatialType.Meters) {
+            return Math.sqrt(Math.pow(p1.getX() - p2.getX(),2)
+                    + Math.pow(p1.getY() - p2.getY(),2)
+                    + Math.pow(p1.getT() - p2.getT(),2));
+        } else {
+            throw new LSTFilterException("Unrecognized coordinate type for GPSLib");
+        }
+    }
+
+    //This method is STPoint dimension safe for all dimensions - it supports inclusion-exclusion of any dimension for both p1 and p2
+    public static double distanceBetween(STPoint p1, STPoint p2, Constants.SpatialType type) throws LSTFilterException {
+        if(!p1.hasT() || !p2.hasT()){
+            return spatialDistanceBetween(p1, p2, type);
+        } else if((!p1.hasX() || !p2.hasX())){
+            p1.setX(0);
+            p2.setX(0);
+            return spatialTemporalDistanceBetween(p1, p2, type);
+        } else if(!p1.hasY() || !p2.hasY()){
+            p1.setY(0);
+            p2.setY(0);
+            return spatialTemporalDistanceBetween(p1, p2, type);
+        } else {
+            return spatialTemporalDistanceBetween(p1, p2, type);
+        }
+    }
 	
 //	public static void main(String[] args){
 //		GPSLib tester = new GPSLib();
