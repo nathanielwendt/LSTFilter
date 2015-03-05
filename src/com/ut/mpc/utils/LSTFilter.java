@@ -1,6 +1,5 @@
 package com.ut.mpc.utils;
 
-import com.ut.mpc.kdtree.KDTree;
 import com.ut.mpc.setup.Constants;
 
 import java.util.ArrayList;
@@ -107,6 +106,9 @@ public class LSTFilter {
         } else {
             return 0.0;
         }
+
+        System.out.println(kdtree.getSize());
+        System.out.println(boundPoints.size());
 
         STPoint boundValues = new STPoint(CoverageWindow.SPACE_RADIUS,
                 CoverageWindow.SPACE_RADIUS,
@@ -325,6 +327,7 @@ public class LSTFilter {
 		tileWeight = 0;
         for(STPoint currPoint : points){
 			try {
+
 				spatialDistance = GPSLib.spatialDistanceBetween(center, currPoint, SPATIAL_TYPE);
                 temporalDistance = GPSLib.temporalDistanceBetween(center, currPoint);
 			} catch (LSTFilterException e){
