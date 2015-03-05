@@ -26,7 +26,7 @@ public class DemoRunner {
             System.exit(0);
         }
 
-        Constants.setCabsDefaults();
+        //Constants.setCabsDefaults();
         NativeWrapper main = new NativeWrapper(conn,"RTreeMain");
 //
 //        STStorage[] storages = new STStorage[]{main};

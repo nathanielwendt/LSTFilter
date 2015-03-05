@@ -1,40 +1,27 @@
 package com.ut.mpc.setup;
 
+import com.ut.mpc.utils.GPSLib;
+
 public class Constants {
 	public enum SpatialType{GPS,Meters};
 	public static SpatialType SPATIAL_TYPE = SpatialType.GPS;
 	
-	public static class CoverageWindow{
+	public static class PoK {
 		public static float TOTAL_WEIGHT = 2;
-		
 		public static float SPACE_WEIGHT = 1;
-		public static float SPACE_RADIUS = .001f;
+        public static float TEMPORAL_WEIGHT = TOTAL_WEIGHT - 1;
 
-        public static float LONG_RADIUS = .0018f;
-        public static float LAT_RADIUS = .0005f;
+        public static float SPACE_RADIUS = 1f;
+        public static float TEMPORAL_RADIUS = 1;
 
-		public static float SPACE_DECAY = SPACE_WEIGHT / (SPACE_RADIUS);
-		
-		public static float TEMPORAL_WEIGHT = TOTAL_WEIGHT - 1;
-		public static float TEMPORAL_RADIUS = 1000;
-		public static float TEMPORAL_DECAY = TEMPORAL_WEIGHT / (TEMPORAL_RADIUS);
-		
-		//TODO: add SPACE-TEMPORAL Trim so nearby doesn't need to trim if they are insignificant points
-		
-		public static int TRIM_THRESH = 10;
-		
-		//slope of temporal decay;   timerelevance =  timereference / ( decay * timestamp )
-		//if this is less than 1, there will be an overflow of space weight (which may be ok)
-		//public static float CURRENT_TIMESTAMP = 0f; //this is temporary for testing purposes only, eventually this will be a method call to current time
-		//public static float REFERENCE_TIMESTAMP = 0f;
-		
-		public static float LONG_KM_EST = .099f;
-		public static float LAT_KM_EST = .011f;
-		
-		public static boolean GRID_DEFAULT = true;
-		public static float X_GRID_GRAN = (GRID_DEFAULT) ? SPACE_RADIUS : .05f; //allow fine tuning by setting grid default to off
-		public static float Y_GRID_GRAN = (GRID_DEFAULT) ? SPACE_RADIUS : .05f; //allow fine tuning by setting grid default to off
-		public static float T_GRID_GRAN = (GRID_DEFAULT) ? TEMPORAL_RADIUS : 2E8f;
+        public static int TRIM_THRESH = 10;
+        public static boolean GRID_DEFAULT = true; //default is grid size == radius size, GRID_FACTOR == 1
+        public static float GRID_FACTOR = 2; // number of grids per radius, should never be less than 1
+
+        public static float LONG_KM_EST = .009f;
+        public static float LAT_KM_EST = .001f;
+
+        //TODO: add SPACE-TEMPORAL Trim so nearby doesn't need to trim if they are insignificant points
 	}
 	
 	public static class SmartInsert{
@@ -58,60 +45,48 @@ public class Constants {
 		}
 	}
 
-    public static void setTestDefaults(){
-        CoverageWindow.TOTAL_WEIGHT = 2;
-
-        CoverageWindow.SPACE_WEIGHT = 1;
-        CoverageWindow.SPACE_RADIUS = 10;
-        CoverageWindow.SPACE_DECAY = CoverageWindow.SPACE_WEIGHT / (CoverageWindow.SPACE_RADIUS);
-
-        CoverageWindow.TEMPORAL_WEIGHT = CoverageWindow.TOTAL_WEIGHT - 1;
-        CoverageWindow.TEMPORAL_RADIUS = 10;
-        CoverageWindow.TEMPORAL_DECAY = CoverageWindow.TEMPORAL_WEIGHT / (CoverageWindow.TEMPORAL_RADIUS);
-    }
-
-	/*
-	 * Defaults configured for the Crawded Mobi Data Set
-	 * Distance is in meters
-	 */
-	public static  void setMobilityDefaults(){
-		SPATIAL_TYPE = SpatialType.Meters;
-		CoverageWindow.SPACE_WEIGHT = 100;
-		CoverageWindow.SPACE_RADIUS = 30;
-        CoverageWindow.TEMPORAL_RADIUS = 500;
-		CoverageWindow.GRID_DEFAULT = false;
-		CoverageWindow.X_GRID_GRAN = (CoverageWindow.GRID_DEFAULT) ? CoverageWindow.SPACE_RADIUS / 10 : 5; 
-		CoverageWindow.Y_GRID_GRAN = (CoverageWindow.GRID_DEFAULT) ? CoverageWindow.SPACE_RADIUS / 10 : 5; 	
-		//CoverageWindow.NORMALIZE_PLOT = false;
-		CoverageWindow.TEMPORAL_DECAY = 8;
-		//CoverageWindow.CURRENT_TIMESTAMP = 0; 
-		//CoverageWindow.REFERENCE_TIMESTAMP = 0;
-		SmartInsert.INS_THRESH = 80;		
-		DEBUG_LEVEL1 = true;
-		DEBUG_LEVEL2 = true;
-		DEBUG_LEVEL3 = false;
-	}
-	
-	/*
-	 * Defaults configured for the Cabspotting MObility Data Set
-	 * 	Distance is in kilometers
-	 */
-	public static  void setCabsDefaults(){
-		SPATIAL_TYPE = SpatialType.GPS;
-
-        CoverageWindow.SPACE_WEIGHT = 1f;
-        CoverageWindow.TEMPORAL_WEIGHT = 1f;
-        CoverageWindow.TOTAL_WEIGHT = 2f;
-        CoverageWindow.SPACE_RADIUS = .001f;
-        CoverageWindow.TEMPORAL_RADIUS = 1000 * 60 * 5f;
-        CoverageWindow.SPACE_DECAY = CoverageWindow.SPACE_WEIGHT / (CoverageWindow.SPACE_RADIUS);
-        CoverageWindow.TEMPORAL_DECAY = CoverageWindow.TEMPORAL_WEIGHT / (CoverageWindow.TEMPORAL_RADIUS);
-        //CoverageWindow.SPACE_RADIUS = .0035f;
-        //CoverageWindow.TEMPORAL_RADIUS = 1000 * 60 * 20;
-
-		CoverageWindow.GRID_DEFAULT = false;
-		CoverageWindow.X_GRID_GRAN = (CoverageWindow.GRID_DEFAULT) ? CoverageWindow.SPACE_RADIUS / 10 : .001f; 
-		CoverageWindow.Y_GRID_GRAN = (CoverageWindow.GRID_DEFAULT) ? CoverageWindow.SPACE_RADIUS / 10 : .001f;
-	}
+//	/*
+//	 * Defaults configured for the Crawded Mobi Data Set
+//	 * Distance is in meters
+//	 */
+//	public static  void setMobilityDefaults(){
+//		SPATIAL_TYPE = SpatialType.Meters;
+//		PoK.SPACE_WEIGHT = 100;
+//		PoK.SPACE_RADIUS = 30;
+//        PoK.TEMPORAL_RADIUS = 500;
+//		PoK.GRID_DEFAULT = false;
+//		PoK.X_GRID_GRAN = (PoK.GRID_DEFAULT) ? PoK.SPACE_RADIUS / 10 : 5;
+//		PoK.Y_GRID_GRAN = (PoK.GRID_DEFAULT) ? PoK.SPACE_RADIUS / 10 : 5;
+//		//PoK.NORMALIZE_PLOT = false;
+//		PoK.TEMPORAL_DECAY = 8;
+//		//PoK.CURRENT_TIMESTAMP = 0;
+//		//PoK.REFERENCE_TIMESTAMP = 0;
+//		SmartInsert.INS_THRESH = 80;
+//		DEBUG_LEVEL1 = true;
+//		DEBUG_LEVEL2 = true;
+//		DEBUG_LEVEL3 = false;
+//	}
+//
+//	/*
+//	 * Defaults configured for the Cabspotting MObility Data Set
+//	 * 	Distance is in kilometers
+//	 */
+//	public static  void setCabsDefaults(){
+//		SPATIAL_TYPE = SpatialType.GPS;
+//
+//        PoK.SPACE_WEIGHT = 1f;
+//        PoK.TEMPORAL_WEIGHT = 1f;
+//        PoK.TOTAL_WEIGHT = 2f;
+//        PoK.SPACE_RADIUS = .001f;
+//        PoK.TEMPORAL_RADIUS = 1000 * 60 * 5f;
+//        PoK.SPACE_DECAY = PoK.SPACE_WEIGHT / (PoK.SPACE_RADIUS);
+//        PoK.TEMPORAL_DECAY = PoK.TEMPORAL_WEIGHT / (PoK.TEMPORAL_RADIUS);
+//        //PoK.SPACE_RADIUS = .0035f;
+//        //PoK.TEMPORAL_RADIUS = 1000 * 60 * 20;
+//
+//		PoK.GRID_DEFAULT = false;
+//		PoK.X_GRID_GRAN = (PoK.GRID_DEFAULT) ? PoK.SPACE_RADIUS / 10 : .001f;
+//		PoK.Y_GRID_GRAN = (PoK.GRID_DEFAULT) ? PoK.SPACE_RADIUS / 10 : .001f;
+//	}
 	
 }

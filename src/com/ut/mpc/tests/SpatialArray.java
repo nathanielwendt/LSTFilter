@@ -90,9 +90,9 @@ public class SpatialArray implements STStorage {
             throw new RuntimeException("Nearest Neighbor does not support N != 1");
         }
 
-        STPoint boundValues = new STPoint(Constants.CoverageWindow.SPACE_RADIUS,
-                Constants.CoverageWindow.SPACE_RADIUS,
-                Constants.CoverageWindow.TEMPORAL_RADIUS);
+        STPoint boundValues = new STPoint(Constants.PoK.SPACE_RADIUS,
+                Constants.PoK.SPACE_RADIUS,
+                Constants.PoK.TEMPORAL_RADIUS);
 
         List<STPoint> candPoints = new ArrayList<STPoint>();
         for(int i = 0; i < 20; i++){
@@ -103,9 +103,9 @@ public class SpatialArray implements STStorage {
                     break;
                 }
                 int step = (int) Math.pow(i, 3);
-                boundValues.setX(step * Constants.CoverageWindow.SPACE_RADIUS);
-                boundValues.setY(step * Constants.CoverageWindow.SPACE_RADIUS);
-                boundValues.setT(step * Constants.CoverageWindow.TEMPORAL_RADIUS);
+                boundValues.setX(step * Constants.PoK.SPACE_RADIUS);
+                boundValues.setY(step * Constants.PoK.SPACE_RADIUS);
+                boundValues.setT(step * Constants.PoK.TEMPORAL_RADIUS);
             } catch (LSTFilterException e){
                 e.printStackTrace();
             }

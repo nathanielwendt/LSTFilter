@@ -3,6 +3,11 @@ package com.ut.mpc.utils;
 import com.ut.mpc.setup.Constants;
 
 public class GPSLib {
+
+    public static void main(String[] args){
+        System.out.println(Math.toRadians(0));
+    }
+
 	private static float longitudeKM = .009f;
 	private static float latitudeKM = .001f;
 
@@ -31,6 +36,39 @@ public class GPSLib {
 
 		return new STRegion(newMin, newMax);
 	}
+
+    public static double distanceX(STPoint p1, STPoint p2, Constants.SpatialType type) throws LSTFilterException {
+        if(type == Constants.SpatialType.GPS) {
+            double R = 6371;
+            double long1 = Math.toRadians(p1.getX());
+            double long2 = Math.toRadians(p2.getX());
+            double d = Math.acos(1 * Math.cos(long2 - long1)) * R;
+            return d;
+        } else if(type == Constants.SpatialType.Meters) {
+            return Math.abs(p2.getX() - p1.getX());
+        } else {
+            throw new LSTFilterException("Unrecognized coordinate type for GPSLib");
+        }
+    }
+
+    public static double distanceY(STPoint p1, STPoint p2, Constants.SpatialType type) throws LSTFilterException {
+        if(type == Constants.SpatialType.GPS) {
+            double R = 6371;
+            double lat1 = Math.toRadians(p1.getY());
+            double lat2 = Math.toRadians(p2.getY());
+            double d = Math.acos(Math.sin(lat1) * Math.sin(lat2) +
+                    Math.cos(lat1) * Math.cos(lat2)) * R;
+            return d;
+        } else if(type == Constants.SpatialType.Meters) {
+            return Math.abs(p2.getY() - p1.getY());
+        } else {
+            throw new LSTFilterException("Unrecognized coordinate type for GPSLib");
+        }
+    }
+
+    public static double distanceT(STPoint p1, STPoint p2){
+        return Math.abs(p1.getT() - p2.getT());
+    }
 	
 	public static double spatialDistanceBetween(STPoint p1, STPoint p2, Constants.SpatialType type) throws LSTFilterException{
 		if(type == Constants.SpatialType.GPS){
@@ -50,6 +88,28 @@ public class GPSLib {
 			throw new LSTFilterException("Unrecognized coordinate type for GPSLib");
 		}
 	}
+
+    //Has a tolerance of about 10m when used as distance calculation 1km
+    //Drastically decreases in accuracy with increasing distance calculations
+    public static double spatialDistanceBetweenFast(STPoint p1, STPoint p2, Constants.SpatialType type) throws LSTFilterException {
+        if(type == Constants.SpatialType.GPS){
+            double R = 6371;
+            double lat1 = Math.toRadians(p1.getY());
+            double lat2 = Math.toRadians(p2.getY());
+            double long1 = Math.toRadians(p1.getX());
+            double long2 = Math.toRadians(p2.getX());
+
+            double x = (long2 - long1) * Math.cos((lat1 - lat2)/2);
+            double y = (lat2 - lat1);
+            double d = Math.sqrt(x*x + y*y) * R;
+            return d;
+        } else if(type == Constants.SpatialType.Meters) {
+            return Math.sqrt(Math.pow(p1.getX() - p2.getX(),2) + Math.pow(p1.getY() - p2.getY(),2));
+            //return Math.pow(p1.getX() - p2.getX(),2) + Math.pow(p1.getY() - p2.getY(),2);
+        } else {
+            throw new LSTFilterException("Unrecognized coordinate type for GPSLib");
+        }
+    }
 
     public static double temporalDistanceBetween(STPoint p1, STPoint p2){
         return Math.abs(p1.getT() - p2.getT());
@@ -91,7 +151,41 @@ public class GPSLib {
             return spatialTemporalDistanceBetween(p1, p2, type);
         }
     }
-	
+
+
+    public static float latOffsetFromDistance(STPoint reference, double dist) {
+        double distRad = dist / 6371;
+        double bearing = 0;
+        double lat1 = Math.toRadians(reference.getY());
+        double long1 = Math.toRadians(reference.getX());
+
+        double lat2 = Math.asin(Math.sin(lat1) * Math.cos(distRad) + Math.cos(lat1) * Math.sin(distRad));
+        double long2 = long1 + Math.atan2(0, Math.cos(distRad) - Math.sin(lat1) * Math.sin(lat2));
+
+        return (float) Math.toDegrees(Math.abs(lat2 - lat1));
+
+//        var φ2 = Math.asin( Math.sin(φ1)*Math.cos(d/R) +
+//                Math.cos(φ1)*Math.sin(d/R)*Math.cos(brng) );
+//        var λ2 = λ1 + Math.atan2(Math.sin(brng)*Math.sin(d/R)*Math.cos(φ1),
+//                Math.cos(d/R)-Math.sin(φ1)*Math.sin(φ2));
+
+    }
+
+    public static float longOffsetFromDistance(STPoint reference, double dist){
+        double distRad = dist / 6371;
+        double bearing = 90;
+        double lat1 = Math.toRadians(reference.getY());
+        double long1 = Math.toRadians(reference.getX());
+
+        double lat2 = Math.asin(Math.sin(lat1) * Math.cos(distRad));
+        double long2 = long1 + Math.atan2(Math.sin(distRad) * Math.cos(lat1), Math.cos(distRad) - Math.sin(lat1) * Math.sin(lat2));
+
+        return (float) Math.toDegrees(Math.abs(long2 - long1));
+
+//        φ2 = asin( sin φ1 ⋅ cos δ + cos φ1 ⋅ sin δ ⋅ cos θ )
+//        λ2 = λ1 + atan2( sin θ ⋅ sin δ ⋅ cos φ1, cos δ − sin φ1 ⋅ sin φ2 )
+    }
+
 //	public static void main(String[] args){
 //		GPSLib tester = new GPSLib();
 //		double[] temp = getCoordFromDist(37.75134, -122.39488, 10, 180);
@@ -111,19 +205,19 @@ public class GPSLib {
 //		STPoint maxExt = new STPoint();
 //		if(Constants.SPATIAL_TYPE == Constants.SpatialType.GPS){
 //			STPoint temp;
-//			temp = GPSLib.getCoordFromDist(max.getX(), max.getY(), Constants.CoverageWindow.SPACE_RADIUS, 270);
+//			temp = GPSLib.getCoordFromDist(max.getX(), max.getY(), Constants.PoK.SPACE_RADIUS, 270);
 //			maxExt.setY(temp.getY());
-//			temp = GPSLib.getCoordFromDist(min.getX(), min.getY(), Constants.CoverageWindow.SPACE_RADIUS, 90);
+//			temp = GPSLib.getCoordFromDist(min.getX(), min.getY(), Constants.PoK.SPACE_RADIUS, 90);
 //			minExt.setY(temp.getY());
-//			temp = GPSLib.getCoordFromDist(min.getX(), min.getY(), Constants.CoverageWindow.SPACE_RADIUS, 180);
+//			temp = GPSLib.getCoordFromDist(min.getX(), min.getY(), Constants.PoK.SPACE_RADIUS, 180);
 //			minExt.setX(temp.getX());
-//			temp = GPSLib.getCoordFromDist(max.getX(), max.getY(), Constants.CoverageWindow.SPACE_RADIUS, 0);
+//			temp = GPSLib.getCoordFromDist(max.getX(), max.getY(), Constants.PoK.SPACE_RADIUS, 0);
 //			maxExt.setX(temp.getX());
 //		} else if(Constants.SPATIAL_TYPE == Constants.SpatialType.Meters){
-//			minExt.setX(min.getX() - Constants.CoverageWindow.SPACE_RADIUS);
-//			minExt.setY(min.getY() - Constants.CoverageWindow.SPACE_RADIUS);
-//			maxExt.setX(max.getX() + Constants.CoverageWindow.SPACE_RADIUS);
-//			maxExt.setY(max.getY() + Constants.CoverageWindow.SPACE_RADIUS);		
+//			minExt.setX(min.getX() - Constants.PoK.SPACE_RADIUS);
+//			minExt.setY(min.getY() - Constants.PoK.SPACE_RADIUS);
+//			maxExt.setX(max.getX() + Constants.PoK.SPACE_RADIUS);
+//			maxExt.setY(max.getY() + Constants.PoK.SPACE_RADIUS);
 //		}
 //		return new STRegion(minExt, maxExt);
 //	}
@@ -134,8 +228,8 @@ public class GPSLib {
 //		STRegion region = null;
 //		if(Constants.SPATIAL_TYPE == Constants.SpatialType.GPS){
 //			//Possible idea - get accurate distance for first point, find what distance is and use that fixed value
-//			float paddingX = Constants.CoverageWindow.LONG_KM_EST * Constants.CoverageWindow.SPACE_RADIUS;
-//			float paddingY = Constants.CoverageWindow.LAT_KM_EST * Constants.CoverageWindow.SPACE_RADIUS;
+//			float paddingX = Constants.PoK.LONG_KM_EST * Constants.PoK.SPACE_RADIUS;
+//			float paddingY = Constants.PoK.LAT_KM_EST * Constants.PoK.SPACE_RADIUS;
 //			minExt.setX(min.getX() - paddingX);
 //			minExt.setY(min.getY() - paddingY);
 //			maxExt.setX(max.getX() + paddingX);

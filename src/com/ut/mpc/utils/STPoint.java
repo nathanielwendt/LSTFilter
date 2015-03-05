@@ -1,6 +1,7 @@
 package com.ut.mpc.utils;
 
-import com.ut.mpc.setup.Constants.CoverageWindow;
+import com.ut.mpc.setup.Constants;
+import com.ut.mpc.setup.Constants.PoK;
 
 public class STPoint {
 	private static float DEFAULT_VAL = Float.NaN;
@@ -165,8 +166,8 @@ public class STPoint {
 		double decayDub = (double) decay;
 		double offset = Math.abs(referenceDub - thisDub);
 		//return ((-1 * decayDub * offset) + thisDub) / thisDub;
-		return ((-CoverageWindow.TEMPORAL_WEIGHT / CoverageWindow.TEMPORAL_RADIUS) * offset +
-				CoverageWindow.TEMPORAL_WEIGHT) / CoverageWindow.TEMPORAL_WEIGHT;
+		return ((-PoK.TEMPORAL_WEIGHT / PoK.TEMPORAL_RADIUS) * offset +
+				Constants.PoK.TEMPORAL_WEIGHT) / PoK.TEMPORAL_WEIGHT;
 	}
 
     //for each dimension that is valid in both p1 and p2, p1 now reflects the sum of p1 and p2 along that dimension

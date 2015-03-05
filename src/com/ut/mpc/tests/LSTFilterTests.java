@@ -9,33 +9,26 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.ut.mpc.setup.Constants;
-import com.ut.mpc.setup.Constants.CoverageWindow;
-import com.ut.mpc.utils.GPSLib;
+import com.ut.mpc.setup.Constants.PoK;
 import com.ut.mpc.utils.LSTFilter;
-import com.ut.mpc.utils.LSTFilterException;
 import com.ut.mpc.utils.STPoint;
 import com.ut.mpc.utils.STRegion;
-import com.ut.mpc.utils.STStorage;
 
 public class LSTFilterTests {
 	
 	@Before
 	public void setUp(){
-		Constants.CoverageWindow.GRID_DEFAULT = true;
+		PoK.GRID_DEFAULT = true;
 		Constants.SPATIAL_TYPE = Constants.SpatialType.Meters;
 
-        Constants.CoverageWindow.TOTAL_WEIGHT = 2;
-        Constants.CoverageWindow.SPACE_WEIGHT = 1;
-        Constants.CoverageWindow.SPACE_RADIUS = 1;
-        Constants.CoverageWindow.SPACE_DECAY = Constants.CoverageWindow.SPACE_WEIGHT / (Constants.CoverageWindow.SPACE_RADIUS);
+        Constants.PoK.TOTAL_WEIGHT = 2;
+        PoK.SPACE_WEIGHT = 1;
+        Constants.PoK.TEMPORAL_WEIGHT = 1;
 
-        Constants.CoverageWindow.TEMPORAL_WEIGHT = 1;
-        Constants.CoverageWindow.TEMPORAL_RADIUS = 1;
-        Constants.CoverageWindow.TEMPORAL_DECAY = Constants.CoverageWindow.TEMPORAL_WEIGHT / (Constants.CoverageWindow.TEMPORAL_RADIUS);
+        Constants.PoK.SPACE_RADIUS = 1;
+        Constants.PoK.TEMPORAL_RADIUS = 1;
 
-        Constants.CoverageWindow.X_GRID_GRAN = .5f;
-        Constants.CoverageWindow.Y_GRID_GRAN = .5f;
-        Constants.CoverageWindow.T_GRID_GRAN = .5f;
+        PoK.GRID_DEFAULT = false;
 	}
 	
 	@Test
@@ -153,11 +146,9 @@ public class LSTFilterTests {
 		
 		STPoint min = new STPoint(0f,0f,0f);
 		STPoint max = new STPoint(5f,5f,20f);
-		double result = filter.windowPoK(new STRegion(min, max), false);
-		//assertEquals(.25f, result, .0001);
 		
 		//points are set to be perfectly aligned at grid spaces, snapping should always give 1.0
-		result = filter.windowPoK(new STRegion(min, max), true);
+		double result = filter.windowPoK(new STRegion(min, max), true);
 		assertEquals(1.0f, result, .00001);
 		
 		max = new STPoint(10f,20f,200f);

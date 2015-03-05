@@ -10,6 +10,9 @@ import com.ut.mpc.utils.LSTFilterException;
 import com.ut.mpc.utils.STPoint;
 import com.ut.mpc.utils.STRegion;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class GPSLibTests {
 
 	@Test
@@ -83,5 +86,37 @@ public class GPSLibTests {
 			fail();
 		}
 	}
+
+    @Test
+    public void testSpatialDistMethods(){
+        STPoint p1 = new STPoint(-122.40521f, 37.79657f, 0f);
+        STPoint p2 = new STPoint(-122.4075f, 37.78405f, 0f);
+
+        try {
+            double val = GPSLib.spatialDistanceBetween(p1, p2, Constants.SpatialType.GPS);
+            double val2 = GPSLib.spatialDistanceBetweenFast(p1, p2, Constants.SpatialType.GPS);
+
+            System.out.println(val);
+            System.out.println(val2);
+
+            double x = GPSLib.distanceX(p1, p2, Constants.SpatialType.GPS);
+            double y = GPSLib.distanceY(p1, p2, Constants.SPATIAL_TYPE.GPS);
+            System.out.println(Math.sqrt(x*x + y*y));
+
+        } catch (LSTFilterException e){
+            fail();
+        }
+    }
+
+    @Test
+    public void testSpatialOffset(){
+        STPoint ref = new STPoint(-122.40521f, 37.79657f, 0f);
+
+        double x = GPSLib.longOffsetFromDistance(ref, 111);
+        double y = GPSLib.latOffsetFromDistance(ref, 111);
+
+        assertEquals(1.263, x, .001f);
+        assertEquals(0.998, y, .001f);
+    }
 
 }
