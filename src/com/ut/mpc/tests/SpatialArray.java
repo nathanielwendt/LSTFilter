@@ -59,7 +59,6 @@ public class SpatialArray implements STStorage {
 
     @Override
     public List<STPoint> getSequence(STPoint start, STPoint end) {
-        // TODO Auto-generated method stub
         return null;
     }
 
@@ -83,16 +82,12 @@ public class SpatialArray implements STStorage {
     }
 
     @Override
-    public List<STPoint> nearestNeighbor(STPoint needle, int n) {
+    public List<STPoint> nearestNeighbor(STPoint needle, STPoint boundValues, int n) {
 
         //TODO support more than one nearest neighbor
         if(n != 1){
             throw new RuntimeException("Nearest Neighbor does not support N != 1");
         }
-
-        STPoint boundValues = new STPoint(Constants.PoK.SPACE_RADIUS,
-                Constants.PoK.SPACE_RADIUS,
-                Constants.PoK.TEMPORAL_RADIUS);
 
         List<STPoint> candPoints = new ArrayList<STPoint>();
         for(int i = 0; i < 20; i++){
@@ -103,9 +98,9 @@ public class SpatialArray implements STStorage {
                     break;
                 }
                 int step = (int) Math.pow(i, 3);
-                boundValues.setX(step * Constants.PoK.SPACE_RADIUS);
-                boundValues.setY(step * Constants.PoK.SPACE_RADIUS);
-                boundValues.setT(step * Constants.PoK.TEMPORAL_RADIUS);
+                boundValues.setX(step * boundValues.getX());
+                boundValues.setY(step * boundValues.getY());
+                boundValues.setT(step * boundValues.getT());
             } catch (LSTFilterException e){
                 e.printStackTrace();
             }

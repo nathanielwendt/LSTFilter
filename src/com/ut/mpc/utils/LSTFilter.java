@@ -14,10 +14,6 @@ public class LSTFilter {
 	private SpatialType spatialType = SpatialType.GPS;
 	private boolean smartInsert = true;
 
-    private double SPACE_DECAY, TEMP_DECAY;
-    private float X_RADIUS, Y_RADIUS, T_RADIUS;
-    private float X_GRID_GRAN, Y_GRID_GRAN, T_GRID_GRAN;
-
     //point representing center/or reference of structure for use with gps dist calcs
     //default to some point in California
     private STPoint refPoint = new STPoint(-122.4375f, 37.77305f, 0f);
@@ -28,31 +24,11 @@ public class LSTFilter {
 	 */
 	public LSTFilter(STStorage structure){
 		this.structure = structure;
-        this.updateConfig();
+        PoK.updateConfig(this.refPoint);
 	}
 
     public void setRefPoint(STPoint ref){
         this.refPoint = ref;
-    }
-
-    private void updateConfig(){
-        spatialType = SPATIAL_TYPE;
-
-        if(spatialType == SpatialType.GPS){
-            X_RADIUS = GPSLib.longOffsetFromDistance(this.refPoint, PoK.SPACE_RADIUS);
-            Y_RADIUS = GPSLib.latOffsetFromDistance(this.refPoint, PoK.SPACE_RADIUS);
-        } else {
-            X_RADIUS = PoK.SPACE_RADIUS;
-            Y_RADIUS = PoK.SPACE_RADIUS;
-        }
-        T_RADIUS = PoK.TEMPORAL_RADIUS;
-
-        X_GRID_GRAN  = (PoK.GRID_DEFAULT) ? X_RADIUS : X_RADIUS / PoK.GRID_FACTOR;
-        Y_GRID_GRAN = (PoK.GRID_DEFAULT) ? Y_RADIUS : Y_RADIUS / PoK.GRID_FACTOR;
-        T_GRID_GRAN = (PoK.GRID_DEFAULT) ? T_RADIUS : T_RADIUS / PoK.GRID_FACTOR;
-
-        SPACE_DECAY = PoK.SPACE_WEIGHT / PoK.SPACE_RADIUS;
-        TEMP_DECAY = PoK.TEMPORAL_WEIGHT / PoK.TEMPORAL_RADIUS;
     }
 
 	/**
@@ -86,9 +62,9 @@ public class LSTFilter {
 		STPoint mins = region.getMins();
 		STPoint maxs = region.getMaxs();
 
-        float xCenterOffset = X_GRID_GRAN / 2;
-        float yCenterOffset = Y_GRID_GRAN / 2;
-        float tCenterOffset = T_GRID_GRAN / 2;
+        float xCenterOffset = PoK.X_GRID_GRAN / 2;
+        float yCenterOffset = PoK.Y_GRID_GRAN / 2;
+        float tCenterOffset = PoK.T_GRID_GRAN / 2;
 
         //these points must have 3 dimensions
         List<STPoint> boundPoints = structure.range(new STRegion(mins, maxs));
@@ -119,18 +95,18 @@ public class LSTFilter {
             //spatiotemporal query
             kdtree = KDTreeAdapter.makeBalancedTree(3,0,boundPoints);
             if(snap){
-                totalGridCount = this.getGridCount(minBounds, maxBounds, new STPoint(X_GRID_GRAN, Y_GRID_GRAN, T_GRID_GRAN));
+                totalGridCount = this.getGridCount(minBounds, maxBounds, new STPoint(PoK.X_GRID_GRAN, PoK.Y_GRID_GRAN, PoK.T_GRID_GRAN));
             } else {
-                totalGridCount = this.getGridCount(mins,maxs, new STPoint(X_GRID_GRAN, Y_GRID_GRAN, T_GRID_GRAN));
+                totalGridCount = this.getGridCount(mins,maxs, new STPoint(PoK.X_GRID_GRAN, PoK.Y_GRID_GRAN, PoK.T_GRID_GRAN));
             }
         } else if(mins.hasX() && mins.hasY() && !mins.hasT()){
             //spatial query
             kdtree = KDTreeAdapter.makeBalancedTree(2,0,boundPoints);
-            totalGridCount = this.getGridCount(minBounds, maxBounds, new STPoint(X_GRID_GRAN, Y_GRID_GRAN, T_GRID_GRAN));
+            totalGridCount = this.getGridCount(minBounds, maxBounds, new STPoint(PoK.X_GRID_GRAN, PoK.Y_GRID_GRAN, PoK.T_GRID_GRAN));
         } else if(!mins.hasX() && !mins.hasY() && mins.hasT()){
             //temporal query
             kdtree = KDTreeAdapter.makeBalancedTree(1,2,boundPoints);
-            totalGridCount = this.getGridCount(minBounds, maxBounds, new STPoint(X_GRID_GRAN, Y_GRID_GRAN, T_GRID_GRAN));
+            totalGridCount = this.getGridCount(minBounds, maxBounds, new STPoint(PoK.X_GRID_GRAN, PoK.Y_GRID_GRAN, PoK.T_GRID_GRAN));
         } else {
             return 0.0;
         }
@@ -138,13 +114,13 @@ public class LSTFilter {
         System.out.println(kdtree.getSize());
         System.out.println(boundPoints.size());
 
-        STPoint boundValues = new STPoint(X_RADIUS, Y_RADIUS, T_RADIUS);
+        STPoint boundValues = new STPoint(PoK.X_RADIUS, PoK.Y_RADIUS, PoK.T_RADIUS);
 
         double totalWeight = 0.0;
         double regionWeight = 0.0;
-		for(float x = minBounds.getX(); x < maxBounds.getX(); x = x + X_GRID_GRAN){
-			for(float y = minBounds.getY(); y < maxBounds.getY(); y = y + Y_GRID_GRAN){
-				for(float t = minBounds.getT(); t < maxBounds.getT(); t = t + T_GRID_GRAN){
+		for(float x = minBounds.getX(); x < maxBounds.getX(); x = x + PoK.X_GRID_GRAN){
+			for(float y = minBounds.getY(); y < maxBounds.getY(); y = y + PoK.Y_GRID_GRAN){
+				for(float t = minBounds.getT(); t < maxBounds.getT(); t = t + PoK.T_GRID_GRAN){
 
 					STPoint centerOfRegion = new STPoint(x + xCenterOffset,
 														 y + yCenterOffset,
@@ -187,7 +163,7 @@ public class LSTFilter {
 	 * @return PoK value
 	 */
 	public double pointPoK(STPoint point){
-        STPoint boundValues = new STPoint(X_RADIUS, Y_RADIUS, T_RADIUS);
+        STPoint boundValues = new STPoint(PoK.X_RADIUS, PoK.Y_RADIUS, PoK.T_RADIUS);
 		try {
 			STRegion miniRegion = GPSLib.getSpaceBoundQuick(point, boundValues, SPATIAL_TYPE);
 			List<STPoint> activePoints = structure.range(miniRegion);
@@ -270,8 +246,8 @@ public class LSTFilter {
 //            contribution = spatialCont / SPACE_TOTAL_WEIGHT + temporalCont / TEMP_TOTAL_WEIGHT;
 //            nearby.add(contribution);
 
-			spatialCont =  (-SPACE_DECAY * Math.min(spatialDist, Constants.PoK.SPACE_RADIUS));
-			temporalCont = (-TEMP_DECAY * Math.min(temporalDist, Constants.PoK.TEMPORAL_RADIUS));
+			spatialCont =  (-PoK.SPACE_DECAY * Math.min(spatialDist, Constants.PoK.SPACE_RADIUS));
+			temporalCont = (-PoK.TEMP_DECAY * Math.min(temporalDist, Constants.PoK.TEMPORAL_RADIUS));
 			contribution = spatialCont + temporalCont + Constants.PoK.TOTAL_WEIGHT;
 			nearby.add(contribution / Constants.PoK.TOTAL_WEIGHT);
 		}

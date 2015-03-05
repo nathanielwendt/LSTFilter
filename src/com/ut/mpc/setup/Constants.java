@@ -1,11 +1,12 @@
 package com.ut.mpc.setup;
 
 import com.ut.mpc.utils.GPSLib;
+import com.ut.mpc.utils.STPoint;
 
 public class Constants {
 	public enum SpatialType{GPS,Meters};
 	public static SpatialType SPATIAL_TYPE = SpatialType.GPS;
-	
+
 	public static class PoK {
 		public static float TOTAL_WEIGHT = 2;
 		public static float SPACE_WEIGHT = 1;
@@ -22,6 +23,28 @@ public class Constants {
         public static float LAT_KM_EST = .001f;
 
         //TODO: add SPACE-TEMPORAL Trim so nearby doesn't need to trim if they are insignificant points
+
+        public static void updateConfig(STPoint refPoint){
+            if(SPATIAL_TYPE == SpatialType.GPS){
+                X_RADIUS = GPSLib.longOffsetFromDistance(refPoint, PoK.SPACE_RADIUS);
+                Y_RADIUS = GPSLib.latOffsetFromDistance(refPoint, PoK.SPACE_RADIUS);
+            } else {
+                X_RADIUS = PoK.SPACE_RADIUS;
+                Y_RADIUS = PoK.SPACE_RADIUS;
+            }
+            T_RADIUS = PoK.TEMPORAL_RADIUS;
+
+            X_GRID_GRAN  = (PoK.GRID_DEFAULT) ? X_RADIUS : X_RADIUS / PoK.GRID_FACTOR;
+            Y_GRID_GRAN = (PoK.GRID_DEFAULT) ? Y_RADIUS : Y_RADIUS / PoK.GRID_FACTOR;
+            T_GRID_GRAN = (PoK.GRID_DEFAULT) ? T_RADIUS : T_RADIUS / PoK.GRID_FACTOR;
+
+            SPACE_DECAY = PoK.SPACE_WEIGHT / PoK.SPACE_RADIUS;
+            TEMP_DECAY = PoK.TEMPORAL_WEIGHT / PoK.TEMPORAL_RADIUS;
+        }
+        public static float X_RADIUS, Y_RADIUS, T_RADIUS;
+        public static float X_GRID_GRAN, Y_GRID_GRAN, T_GRID_GRAN;
+        public static float SPACE_DECAY, TEMP_DECAY;
+
 	}
 	
 	public static class SmartInsert{
