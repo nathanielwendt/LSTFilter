@@ -161,7 +161,7 @@ public class NativeWrapper implements STStorage {
     }
 
     @Override
-    public List<STPoint> nearestNeighbor(STPoint needle, int n) {
+    public List<STPoint> nearestNeighbor(STPoint needle, STPoint boundValues, int n) {
         return null;
     }
 

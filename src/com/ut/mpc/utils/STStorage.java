@@ -32,7 +32,7 @@ public interface STStorage {
 	 * @param n number of neighbors to retrieve
 	 * @return list of n nearest neighbors
 	 */
-	public List<STPoint> nearestNeighbor(STPoint needle, int n);
+	public List<STPoint> nearestNeighbor(STPoint needle, STPoint boundValues, int n);
 	
 	/**
 	 * Internally calls nearest neighbor and performs a range query on timestamps alone
