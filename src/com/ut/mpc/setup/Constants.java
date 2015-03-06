@@ -7,7 +7,11 @@ public class Constants {
 	public enum SpatialType{GPS,Meters};
 	public static SpatialType SPATIAL_TYPE = SpatialType.GPS;
 
-	public static class PoK {
+    public static final float FLOAT_DEC_BUDGE = .00001f; //about 10m
+    public static final STPoint POS_FLOAT_BUDGE = new STPoint(FLOAT_DEC_BUDGE, FLOAT_DEC_BUDGE, 5000);
+    public static final STPoint NEG_FLOAT_BUDGE = new STPoint(-FLOAT_DEC_BUDGE, -FLOAT_DEC_BUDGE, -5000);
+
+    public static class PoK {
 		public static float TOTAL_WEIGHT = 2;
 		public static float SPACE_WEIGHT = 1;
         public static float TEMPORAL_WEIGHT = TOTAL_WEIGHT - 1;

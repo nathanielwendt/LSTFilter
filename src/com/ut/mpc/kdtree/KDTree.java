@@ -94,15 +94,20 @@ public class KDTree {
 		} else {
 			//added check to see if node was already in tree before incrementing count and inserting
 			//this maintains correct balances in the nodes as well
-			KDNode search = KDNode.srch(new HPoint(key), m_root, m_K);
-			if(search == null){
+
+            //Don't need to check if node exists, allpoints will be unique for our use of it, just insert
+
+			//KDNode search = KDNode.srch(new HPoint(key), m_root, m_K);
+			//if(search == null){
 				m_count++;
 				m_root = KDNode.ins(new HPoint(key), value, m_root, 0, m_K, this);
 				if(m_count == 1){
 					begin = m_root;
 				}
 
-			}
+			//} else {
+            //    System.out.println("ALERT: POINT ALREADY ADDED > " + key[0]);
+            //}
 
 		}
 	}
