@@ -6,6 +6,7 @@ import com.ut.mpc.utils.STPoint;
 public class Constants {
 	public enum SpatialType{GPS,Meters};
 	public static SpatialType SPATIAL_TYPE = SpatialType.GPS;
+    public static STPoint DEFAULT_REF_POINT = new STPoint(-122.39393f,37.75169f,1212617674);
 
     public static final float FLOAT_DEC_BUDGE = .00001f; //about 10m
     public static final STPoint POS_FLOAT_BUDGE = new STPoint(FLOAT_DEC_BUDGE, FLOAT_DEC_BUDGE, 5000);
@@ -71,6 +72,21 @@ public class Constants {
 			System.out.println(str);
 		}
 	}
+
+    public static void setCabDefaults(){
+        PoK.SPACE_RADIUS = 1; //km
+        PoK.TEMPORAL_RADIUS = 60 * 60 * 6; //6 hours in seconds
+        SPATIAL_TYPE = SpatialType.GPS;
+        PoK.updateConfig(DEFAULT_REF_POINT);
+    }
+
+    public static void setMobilityDefaults(){
+        PoK.SPACE_RADIUS = 50; //m
+        PoK.TEMPORAL_RADIUS = 60 * 5; //5 minutes in seconds
+        SPATIAL_TYPE = SpatialType.Meters;
+        //DEFAULT_REF_POINT is unnecessary because gps type is off
+        PoK.updateConfig(DEFAULT_REF_POINT);
+    }
 
 //	/*
 //	 * Defaults configured for the Crawded Mobi Data Set
