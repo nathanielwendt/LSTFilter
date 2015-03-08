@@ -16,8 +16,8 @@ public class Constants {
 		public static float SPACE_WEIGHT = 1;
         public static float TEMPORAL_WEIGHT = TOTAL_WEIGHT - 1;
 
-        public static float SPACE_RADIUS = 1f;
-        public static float TEMPORAL_RADIUS = 1;
+        public static float SPACE_RADIUS = 1;
+        public static float TEMPORAL_RADIUS = 60 * 60 * 6; //6 hours
 
         public static int TRIM_THRESH = 10;
         public static boolean GRID_DEFAULT = true; //default is grid size == radius size, GRID_FACTOR == 1

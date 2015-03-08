@@ -5,7 +5,7 @@ import com.ut.mpc.kdtree.KDTree;
 import java.util.ArrayList;
 import java.util.List;
 
-public class KDTreeAdapter {
+public class KDTreeAdapter implements STStorage {
 	public KDTree kdtree;
     public int dims;
     public int offsetDim;
@@ -59,6 +59,26 @@ public class KDTreeAdapter {
             points.add((STPoint) result);
         }
         return points;
+    }
+
+    @Override
+    public List<STPoint> nearestNeighbor(STPoint needle, STPoint boundValues, int n) {
+        throw new RuntimeException("naive structure shouldn't need this method");
+    }
+
+    @Override
+    public List<STPoint> getSequence(STPoint start, STPoint end) {
+        throw new RuntimeException("naive structure shouldn't need this method");
+    }
+
+    @Override
+    public STRegion getBoundingBox() {
+        throw new RuntimeException("naive structure shouldn't need this method");
+    }
+
+    @Override
+    public void clear() {
+        throw new RuntimeException("naive structure shouldn't need this method");
     }
 
     public static KDTreeAdapter makeBalancedTree(int dims, int offsetDim, List<STPoint> points){
