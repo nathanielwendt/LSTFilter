@@ -134,8 +134,8 @@ public class STPoint {
 	}
 	
 	public String toString(){
-		return " X: " + String.valueOf(this.x) + 
-			   " Y: " + String.valueOf(this.y) + 
+		return " X: " + String.valueOf(this.x) +
+			   " Y: " + String.valueOf(this.y) +
 			   " T: " + String.valueOf(this.t);
 	}
 

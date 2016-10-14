@@ -200,33 +200,33 @@ public class LSTFilterTests {
         assertEquals(0f, result, .0001f);
     }
 
-    @Test
-    public void testNN(){
-        SpatialArray arr = new SpatialArray();
-        arr.insert(new STPoint(0,0,0));
-        arr.insert(new STPoint(1,1,1));
-        arr.insert(new STPoint(2,2,2));
-        arr.insert(new STPoint(3,3,3));
-
-        List<STPoint> nn = arr.nearestNeighbor(new STPoint(3,3,4), 1);
-        assertEquals(new STPoint(3,3,3), nn.get(0));
-
-        nn = arr.nearestNeighbor(new STPoint(2.6f,2.6f,2.6f), 1);
-        assertEquals(new STPoint(3,3,3), nn.get(0));
-    }
-
-    @Test
-    public void testNNSparse(){
-        SpatialArray arr = new SpatialArray();
-        arr.insert(new STPoint(100,100,100));
-        arr.insert(new STPoint(101,101,101));
-        arr.insert(new STPoint(102,102,103));
-        arr.insert(new STPoint(104,104,104));
-
-        List<STPoint> nn = arr.nearestNeighbor(new STPoint(0,0,0), 1);
-        assertEquals(new STPoint(100,100,100), nn.get(0));
-
-        nn = arr.nearestNeighbor(new STPoint(2000,2000,2000), 1);
-        assertEquals(new STPoint(104,104,104), nn.get(0));
-    }
+//    @Test
+//    public void testNN(){
+//        SpatialArray arr = new SpatialArray();
+//        arr.insert(new STPoint(0,0,0));
+//        arr.insert(new STPoint(1,1,1));
+//        arr.insert(new STPoint(2,2,2));
+//        arr.insert(new STPoint(3,3,3));
+//
+//        List<STPoint> nn = arr.nearestNeighbor(new STPoint(3,3,4), 1);
+//        assertEquals(new STPoint(3,3,3), nn.get(0));
+//
+//        nn = arr.nearestNeighbor(new STPoint(2.6f,2.6f,2.6f), 1);
+//        assertEquals(new STPoint(3,3,3), nn.get(0));
+//    }
+//
+//    @Test
+//    public void testNNSparse(){
+//        SpatialArray arr = new SpatialArray();
+//        arr.insert(new STPoint(100,100,100));
+//        arr.insert(new STPoint(101,101,101));
+//        arr.insert(new STPoint(102,102,103));
+//        arr.insert(new STPoint(104,104,104));
+//
+//        List<STPoint> nn = arr.nearestNeighbor(new STPoint(0,0,0), 1);
+//        assertEquals(new STPoint(100,100,100), nn.get(0));
+//
+//        nn = arr.nearestNeighbor(new STPoint(2000,2000,2000), 1);
+//        assertEquals(new STPoint(104,104,104), nn.get(0));
+//    }
 }
