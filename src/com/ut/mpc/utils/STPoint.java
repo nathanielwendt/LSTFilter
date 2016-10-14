@@ -11,17 +11,6 @@ public class STPoint {
 	
 	public STPoint(){}
 
-    public static void main(String[] args){
-        STPoint point = new STPoint(2.2f,3.3f,99.99f);
-        STPoint point2 = STPoint.fromString(point.toString());
-        System.out.println(point2);
-        System.out.println(point.equals(point2));
-
-        String stuff = "lfjeklfe|lfkejflke";
-        String[] splits = stuff.split("\\|");
-        System.out.println(splits[0]);
-    }
-
 	public STPoint(STPoint other){
 		this.x = other.x;
 		this.y = other.y;

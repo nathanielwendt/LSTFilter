@@ -80,13 +80,9 @@ public class LSTFilter {
             maxBounds.updateMax(point);
         }
 
-        System.out.println(minBounds);
-        System.out.println(maxBounds);
-
         //center align region
         STPoint.add(minBounds, new STPoint(-xCenterOffset, -yCenterOffset, -tCenterOffset));
         STPoint.add(maxBounds, new STPoint(xCenterOffset, yCenterOffset, tCenterOffset));
-
 
         //building cache index might not have all 3 dimensions, must create accordingly
         double totalGridCount = 0.0;
@@ -110,9 +106,6 @@ public class LSTFilter {
         } else {
             return 0.0;
         }
-
-        System.out.println(kdtree.getSize());
-        System.out.println(boundPoints.size());
 
         STPoint boundValues = new STPoint(PoK.X_RADIUS, PoK.Y_RADIUS, PoK.T_RADIUS);
 
@@ -167,7 +160,6 @@ public class LSTFilter {
 		try {
 			STRegion miniRegion = GPSLib.getSpaceBoundQuick(point, boundValues, SPATIAL_TYPE);
 			List<STPoint> activePoints = structure.range(miniRegion);
-            System.out.println(activePoints.size());
 			return this.getPointsPoK(point, activePoints);
 		} catch (LSTFilterException e){
 			e.printStackTrace();
@@ -235,16 +227,6 @@ public class LSTFilter {
 				e.printStackTrace();
 				return Double.NaN;
 			}
-
-//            this distance is in GPS domain
-//            spatialDistSq = Math.pow(center.getX() - currPoint.getX(), 2) + Math.pow(center.getY() - currPoint.getY(), 2);
-//            temporalDist = Math.pow(center.getT() - currPoint.getT(), 2);
-//
-//            spatialCont = SPACE_TOTAL_WEIGHT - (SPACE_DECAY) * Math.min(spatialDistSq, SPACE_RADIUS_SQ);
-//            temporalCont = TEMP_TOTAL_WEIGHT - (TEMP_DECAY) * Math.min(temporalDist, TEMPORAL_RADIUS);
-//
-//            contribution = spatialCont / SPACE_TOTAL_WEIGHT + temporalCont / TEMP_TOTAL_WEIGHT;
-//            nearby.add(contribution);
 
 			spatialCont =  (-PoK.SPACE_DECAY * Math.min(spatialDist, Constants.PoK.SPACE_RADIUS));
 			temporalCont = (-PoK.TEMP_DECAY * Math.min(temporalDist, Constants.PoK.TEMPORAL_RADIUS));
@@ -326,9 +308,6 @@ public class LSTFilter {
 
 	private void smartInsert(STPoint point) {
 		double pok = this.pointPoK(point);
-        if(pok > 0.0001f){
-            System.out.println(pok);
-        }
 		if(pok <= Constants.SmartInsert.INS_THRESH){
 			this.stdInsert(point);
 		}
