@@ -202,6 +202,11 @@ public class LSTFilter {
     }
 
 
+    public int getCost(STRegion region){
+        return 0;
+    }
+
+
 	/*
 	 *  *********************** Private Methods ********************************
 	 *
