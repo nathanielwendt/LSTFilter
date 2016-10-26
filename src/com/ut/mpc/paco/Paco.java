@@ -12,8 +12,13 @@ import java.util.List;
 public class Paco {
     private LSTFilter lstFilter;
     private QueryBroker queryBroker;
+    private String appId;
 
-    public double windowPoK(STRegion region, String appId) throws PacoException {
+    public Paco(String appId){
+        this.appId = appId;
+    }
+
+    public double windowPoK(STRegion region) throws PacoException {
         int cost = lstFilter.getCost(region);
         QueryBudget budget = queryBroker.account(appId);
         if(budget.canSpend(cost)){
@@ -24,8 +29,32 @@ public class Paco {
         }
     }
 
+    public double currWindowPoK() throws PacoException {
+
+    }
+
+    public STPoint getLocation() throws PacoException {
+
+    }
+
     public List<STPoint> findPath(STRegion region){
         return null;
+    }
+
+    /*
+    Following methods are for distributed processing with a Z-index
+     */
+
+    public List<String> groups(STRegion region){
+
+    }
+
+    public List<String> groups(){
+
+    }
+
+    public List<String> orderedKeys(List<String> includedKeys) {
+
     }
 
 
