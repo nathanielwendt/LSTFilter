@@ -11,8 +11,8 @@ import static com.ut.mpc.setup.Constants.SpatialType;
 
 public class LSTFilter {
 	private STStorage structure;
-	private SpatialType spatialType = SpatialType.GPS;
 	private boolean smartInsert = true;
+    private boolean kdCache = true;
 
     //point representing center/or reference of structure for use with gps dist calcs
     //default to some point in California
@@ -29,6 +29,10 @@ public class LSTFilter {
 
     public void setRefPoint(STPoint ref){
         this.refPoint = ref;
+    }
+
+    public void setKDCache(boolean val){
+        this.kdCache = val;
     }
 
 	/**
@@ -66,7 +70,7 @@ public class LSTFilter {
         float yCenterOffset = PoK.Y_GRID_GRAN / 2;
         float tCenterOffset = PoK.T_GRID_GRAN / 2;
 
-        //these points must have 3 dimensions
+        //boundPoints must have 3 dimensions, mins and maxs doesn't necessarily need to
         List<STPoint> boundPoints = structure.range(new STRegion(mins, maxs));
 
         if(boundPoints.size() == 0){
@@ -80,37 +84,43 @@ public class LSTFilter {
             maxBounds.updateMax(point);
         }
 
+
+        if(SPATIAL_TYPE == SpatialType.GPS){
+            STPoint.add(minBounds, Constants.NEG_FLOAT_BUDGE);
+            STPoint.add(maxBounds, Constants.POS_FLOAT_BUDGE);
+        }
+
         //center align region
         STPoint.add(minBounds, new STPoint(-xCenterOffset, -yCenterOffset, -tCenterOffset));
         STPoint.add(maxBounds, new STPoint(xCenterOffset, yCenterOffset, tCenterOffset));
 
         //building cache index might not have all 3 dimensions, must create accordingly
         double totalGridCount = 0.0;
-        KDTreeAdapter kdtree;
-        if(mins.hasX() && mins.hasY() && mins.hasT()){
-            //spatiotemporal query
-            kdtree = KDTreeAdapter.makeBalancedTree(3,0,boundPoints);
-            if(snap){
-                totalGridCount = this.getGridCount(minBounds, maxBounds, new STPoint(PoK.X_GRID_GRAN, PoK.Y_GRID_GRAN, PoK.T_GRID_GRAN));
+
+        STStorage cacheStore;
+
+        if(this.kdCache){
+            if(mins.hasX() && mins.hasY() && mins.hasT()){
+                cacheStore = KDTreeAdapter.makeBalancedTree(3,0,boundPoints);
+            } else if(mins.hasX() && mins.hasY() && !mins.hasT()){
+                cacheStore = KDTreeAdapter.makeBalancedTree(2,0,boundPoints);
+            } else if(!mins.hasX() && !mins.hasY() && mins.hasT()){
+                cacheStore = KDTreeAdapter.makeBalancedTree(1,2,boundPoints);
             } else {
-                totalGridCount = this.getGridCount(mins,maxs, new STPoint(PoK.X_GRID_GRAN, PoK.Y_GRID_GRAN, PoK.T_GRID_GRAN));
+                return 0.0;
             }
-        } else if(mins.hasX() && mins.hasY() && !mins.hasT()){
-            //spatial query
-            kdtree = KDTreeAdapter.makeBalancedTree(2,0,boundPoints);
-            totalGridCount = this.getGridCount(minBounds, maxBounds, new STPoint(PoK.X_GRID_GRAN, PoK.Y_GRID_GRAN, PoK.T_GRID_GRAN));
-        } else if(!mins.hasX() && !mins.hasY() && mins.hasT()){
-            //temporal query
-            kdtree = KDTreeAdapter.makeBalancedTree(1,2,boundPoints);
-            totalGridCount = this.getGridCount(minBounds, maxBounds, new STPoint(PoK.X_GRID_GRAN, PoK.Y_GRID_GRAN, PoK.T_GRID_GRAN));
         } else {
-            return 0.0;
+            SpatialArray cacheStoreArr = new SpatialArray();
+            cacheStoreArr.setPoints(boundPoints);
+            cacheStore = cacheStoreArr;
         }
+
 
         STPoint boundValues = new STPoint(PoK.X_RADIUS, PoK.Y_RADIUS, PoK.T_RADIUS);
 
         double totalWeight = 0.0;
         double regionWeight = 0.0;
+        int count = 0;
 		for(float x = minBounds.getX(); x < maxBounds.getX(); x = x + PoK.X_GRID_GRAN){
 			for(float y = minBounds.getY(); y < maxBounds.getY(); y = y + PoK.Y_GRID_GRAN){
 				for(float t = minBounds.getT(); t < maxBounds.getT(); t = t + PoK.T_GRID_GRAN){
@@ -120,9 +130,10 @@ public class LSTFilter {
 														 t + tCenterOffset);
                     try {
                         STRegion miniRegion = GPSLib.getSpaceBoundQuick(centerOfRegion, boundValues, SPATIAL_TYPE);
-                        List<STPoint> activePoints = kdtree.range(miniRegion);
+                        List<STPoint> activePoints = cacheStore.range(miniRegion);
                         //List<STPoint> activePoints = structure.range(miniRegion);
                         regionWeight = this.getPointsPoK(centerOfRegion, activePoints);
+                        count++;
                     } catch (LSTFilterException e){
                         e.printStackTrace();
                     }
@@ -130,7 +141,8 @@ public class LSTFilter {
 				}
 			}
 		}
-        return totalWeight / totalGridCount;
+
+        return totalWeight / count;
 //		if(snap){
 //			double effectiveGridCount = this.getGridCount(mins,maxs, new STPoint(X_GRID_GRAN, Y_GRID_GRAN, T_GRID_GRAN));
 //			return totalWeight / effectiveGridCount;
@@ -226,7 +238,7 @@ public class LSTFilter {
 		tileWeight = 0;
         for(STPoint currPoint : points){
 			try {
-                spatialDist = GPSLib.spatialDistanceBetween(center, currPoint, SPATIAL_TYPE);
+                spatialDist = GPSLib.spatialDistanceBetweenFast(center, currPoint, SPATIAL_TYPE);
                 temporalDist = GPSLib.distanceT(center, currPoint);
 			} catch (LSTFilterException e){
 				e.printStackTrace();
@@ -235,11 +247,10 @@ public class LSTFilter {
 
 			spatialCont =  (-PoK.SPACE_DECAY * Math.min(spatialDist, Constants.PoK.SPACE_RADIUS));
 			temporalCont = (-PoK.TEMP_DECAY * Math.min(temporalDist, Constants.PoK.TEMPORAL_RADIUS));
-			contribution = spatialCont + temporalCont + Constants.PoK.TOTAL_WEIGHT;
-			nearby.add(contribution / Constants.PoK.TOTAL_WEIGHT);
+			contribution = ((spatialCont + PoK.SPACE_WEIGHT) * (temporalCont + PoK.TEMPORAL_WEIGHT)) / (PoK.SPACE_WEIGHT * PoK.TEMPORAL_WEIGHT);
+			nearby.add(contribution);
 		}
 
-		//TODO: do we still need this with r-tree?
 		if(points.size() > 0 && nearby.size() > 0){ //make sure not to add a point with an empty activePoints tree
 			double[] aggResults = new double[2];
 			aggResults[0] = 0;

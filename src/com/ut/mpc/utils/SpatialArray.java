@@ -1,7 +1,4 @@
-package com.ut.mpc.tests;
-
-import com.ut.mpc.setup.Constants;
-import com.ut.mpc.utils.*;
+package com.ut.mpc.utils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +12,10 @@ public class SpatialArray implements STStorage {
 
     public int size = 0;
     public List<STPoint> points = new ArrayList<STPoint>();
+
+    public void setPoints(List<STPoint> points){
+        this.points = points;
+    }
 
     @Override
     public int getSize() {
