@@ -129,34 +129,6 @@ public class LSTFilterTests {
 		assertEquals(.5f, result, .0001);
 	}
 
-//	@Test
-//	public void testWindowPoKSnap(){
-//		LSTFilter filter = new LSTFilter(new SpatialArray());
-//		filter.setSmartInsert(false);
-//		for(float i=0; i<5; i+=.25f){
-//			for(float j=0; j<5; j+=.25f){
-//				for(float k=0; k<5; k+=.25f){
-//					filter.insert(new STPoint(i,j,k));
-//				}
-//			}
-//		}
-//
-//		STPoint min = new STPoint(0f,0f,0f);
-//		STPoint max = new STPoint(5f,5f,20f);
-//
-//		//points are set to be perfectly aligned at grid spaces, snapping should always give 1.0
-//		double result = filter.windowPoK(new STRegion(min, max));
-//		assertEquals(1.0f, result, .00001);
-//
-//		max = new STPoint(10f,20f,200f);
-//		result = filter.windowPoK(new STRegion(min, max));
-//		assertEquals(1.0f, result, .00001);
-//
-//		max = new STPoint(9f,2000f,22f);
-//		result = filter.windowPoK(new STRegion(min, max));
-//		assertEquals(1.0f, result, .00001);
-//	}
-
     @Test
     public void testWindowPoKExcludeTemporal(){
         LSTFilter filter = new LSTFilter(new SpatialArray());

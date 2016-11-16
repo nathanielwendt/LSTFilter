@@ -69,9 +69,6 @@ public class LSTFilter {
         float xCenterOffset = xGridGran / 2;
         float yCenterOffset = yGridGran / 2;
         float tCenterOffset = tGridGran / 2;
-//        float xCenterOffset = PoK.X_GRID_GRAN / 2;
-//        float yCenterOffset = PoK.Y_GRID_GRAN / 2;
-//        float tCenterOffset = PoK.T_GRID_GRAN / 2;
 
         //boundPoints must have 3 dimensions, mins and maxs doesn't necessarily need to
         List<STPoint> boundPoints = structure.range(window.getRegion());
@@ -112,15 +109,6 @@ public class LSTFilter {
             } else {
                 return 0.0;
             }
-//            if(mins.hasX() && mins.hasY() && mins.hasT()){
-//                cacheStore = KDTreeAdapter.makeBalancedTree(3,0,boundPoints);
-//            } else if(mins.hasX() && mins.hasY() && !mins.hasT()){
-//                cacheStore = KDTreeAdapter.makeBalancedTree(2,0,boundPoints);
-//            } else if(!mins.hasX() && !mins.hasY() && mins.hasT()){
-//                cacheStore = KDTreeAdapter.makeBalancedTree(1,2,boundPoints);
-//            } else {
-//                return 0.0;
-//            }
         } else {
             SpatialArray cacheStoreArr = new SpatialArray();
             cacheStoreArr.setPoints(boundPoints);
@@ -137,9 +125,6 @@ public class LSTFilter {
         for(float x = minBounds.getX(); x < maxBounds.getX(); x = x + xGridGran){
             for(float y = minBounds.getY(); y < maxBounds.getY(); y = y + yGridGran){
                 for(float t = minBounds.getT(); t < maxBounds.getT(); t = t + tGridGran){
-//		for(float x = minBounds.getX(); x < maxBounds.getX(); x = x + PoK.X_GRID_GRAN){
-//			for(float y = minBounds.getY(); y < maxBounds.getY(); y = y + PoK.Y_GRID_GRAN){
-//				for(float t = minBounds.getT(); t < maxBounds.getT(); t = t + PoK.T_GRID_GRAN){
 
 					STPoint centerOfRegion = new STPoint(x + xCenterOffset,
 														 y + yCenterOffset,
@@ -159,12 +144,6 @@ public class LSTFilter {
 		}
 
         return totalWeight / count;
-//		if(snap){
-//			double effectiveGridCount = this.getGridCount(mins,maxs, new STPoint(X_GRID_GRAN, Y_GRID_GRAN, T_GRID_GRAN));
-//			return totalWeight / effectiveGridCount;
-//		} else {
-//			return totalWeight / totalGridCount;
-//		}
 	}
 
 	private double getGridCount(STPoint ref1, STPoint ref2, STPoint granularities){
