@@ -47,31 +47,34 @@ public class LSTFilter {
 			this.stdInsert(item);
 	}
 
-	/**
-	 * Convenience method for windowPoK where snap will be set to false
-	 * @param region - spatial and temporal bounds for which to query for the PoK
-	 * @return PoK value summarizing the coverage of the desired region
-	 */
-	public double windowPoK(STRegion region){
-		return this.windowPoK(region, false);
-	}
+    /**
+     *  Method to adapt to legacy queries with region instead of query window
+     *  @param region - spatial and temporal bounds for which to query for the PoK
+     */
+    public double windowPoK(STRegion region){
+        STPoint gridGran = new STPoint(PoK.X_GRID_GRAN, PoK.Y_GRID_GRAN, PoK.T_GRID_GRAN);
+        return this.windowPoK(new QueryWindow(region, gridGran));
+    }
 
 	/**
 	 * Determines the PoK for a given STRegion
-	 * @param region - spatial and temporal bounds for which to query for the PoK
-	 * @param snap - will return a PoK value ignoring empty space beyond bounds of structure
+	 * @param window - query window with spatial and temporal bounds for query as well as granularity of the computation
 	 * @return PoK value summarizing the coverage of the desired region
 	 */
-	public double windowPoK(STRegion region, boolean snap) {
-		STPoint mins = region.getMins();
-		STPoint maxs = region.getMaxs();
+	public double windowPoK(QueryWindow window) {
+        float xGridGran = window.getGridGran().getX();
+        float yGridGran = window.getGridGran().getY();
+        float tGridGran = window.getGridGran().getT();
 
-        float xCenterOffset = PoK.X_GRID_GRAN / 2;
-        float yCenterOffset = PoK.Y_GRID_GRAN / 2;
-        float tCenterOffset = PoK.T_GRID_GRAN / 2;
+        float xCenterOffset = xGridGran / 2;
+        float yCenterOffset = yGridGran / 2;
+        float tCenterOffset = tGridGran / 2;
+//        float xCenterOffset = PoK.X_GRID_GRAN / 2;
+//        float yCenterOffset = PoK.Y_GRID_GRAN / 2;
+//        float tCenterOffset = PoK.T_GRID_GRAN / 2;
 
         //boundPoints must have 3 dimensions, mins and maxs doesn't necessarily need to
-        List<STPoint> boundPoints = structure.range(new STRegion(mins, maxs));
+        List<STPoint> boundPoints = structure.range(window.getRegion());
 
         if(boundPoints.size() == 0){
             return 0.0;
@@ -100,15 +103,24 @@ public class LSTFilter {
         STStorage cacheStore;
 
         if(this.kdCache){
-            if(mins.hasX() && mins.hasY() && mins.hasT()){
+            if(window.hasSpaceBounds() && window.hasTimeBounds()){
                 cacheStore = KDTreeAdapter.makeBalancedTree(3,0,boundPoints);
-            } else if(mins.hasX() && mins.hasY() && !mins.hasT()){
+            } else if(window.hasSpaceBounds() && !window.hasTimeBounds()){
                 cacheStore = KDTreeAdapter.makeBalancedTree(2,0,boundPoints);
-            } else if(!mins.hasX() && !mins.hasY() && mins.hasT()){
+            } else if(!window.hasSpaceBounds() && window.hasTimeBounds()){
                 cacheStore = KDTreeAdapter.makeBalancedTree(1,2,boundPoints);
             } else {
                 return 0.0;
             }
+//            if(mins.hasX() && mins.hasY() && mins.hasT()){
+//                cacheStore = KDTreeAdapter.makeBalancedTree(3,0,boundPoints);
+//            } else if(mins.hasX() && mins.hasY() && !mins.hasT()){
+//                cacheStore = KDTreeAdapter.makeBalancedTree(2,0,boundPoints);
+//            } else if(!mins.hasX() && !mins.hasY() && mins.hasT()){
+//                cacheStore = KDTreeAdapter.makeBalancedTree(1,2,boundPoints);
+//            } else {
+//                return 0.0;
+//            }
         } else {
             SpatialArray cacheStoreArr = new SpatialArray();
             cacheStoreArr.setPoints(boundPoints);
@@ -116,14 +128,18 @@ public class LSTFilter {
         }
 
 
-        STPoint boundValues = new STPoint(PoK.X_RADIUS, PoK.Y_RADIUS, PoK.T_RADIUS);
+        STPoint boundValues = new STPoint(xGridGran, yGridGran, tGridGran);
+        //STPoint boundValues = new STPoint(PoK.X_RADIUS, PoK.Y_RADIUS, PoK.T_RADIUS);
 
         double totalWeight = 0.0;
         double regionWeight = 0.0;
         int count = 0;
-		for(float x = minBounds.getX(); x < maxBounds.getX(); x = x + PoK.X_GRID_GRAN){
-			for(float y = minBounds.getY(); y < maxBounds.getY(); y = y + PoK.Y_GRID_GRAN){
-				for(float t = minBounds.getT(); t < maxBounds.getT(); t = t + PoK.T_GRID_GRAN){
+        for(float x = minBounds.getX(); x < maxBounds.getX(); x = x + xGridGran){
+            for(float y = minBounds.getY(); y < maxBounds.getY(); y = y + yGridGran){
+                for(float t = minBounds.getT(); t < maxBounds.getT(); t = t + tGridGran){
+//		for(float x = minBounds.getX(); x < maxBounds.getX(); x = x + PoK.X_GRID_GRAN){
+//			for(float y = minBounds.getY(); y < maxBounds.getY(); y = y + PoK.Y_GRID_GRAN){
+//				for(float t = minBounds.getT(); t < maxBounds.getT(); t = t + PoK.T_GRID_GRAN){
 
 					STPoint centerOfRegion = new STPoint(x + xCenterOffset,
 														 y + yCenterOffset,

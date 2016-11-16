@@ -30,11 +30,11 @@ public class Paco {
     }
 
     public double currWindowPoK() throws PacoException {
-
+        return 0.0;
     }
 
     public STPoint getLocation() throws PacoException {
-
+        return null;
     }
 
     public List<STPoint> findPath(STRegion region){
@@ -46,15 +46,15 @@ public class Paco {
      */
 
     public List<String> groups(STRegion region){
-
+        return null;
     }
 
     public List<String> groups(){
-
+        return null;
     }
 
     public List<String> orderedKeys(List<String> includedKeys) {
-
+        return null;
     }
 
 
