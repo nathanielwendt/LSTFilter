@@ -6,21 +6,21 @@ import javax.management.Query;
  * Created by nathanielwendt on 10/13/16.
  */
 public class QueryBudget {
-    private int budget;
-    private int balance;
+    private double budget;
+    private double balance;
 
-    public QueryBudget(int budget){
+    public QueryBudget(double budget){
         budget = budget;
     }
 
-    public void spend(int value){
+    public void spend(double value){
         if(balance + value > budget) {
             throw new RuntimeException("Query Budget exceeded");
         }
         balance += value;
     }
 
-    public boolean canSpend(int value){
+    public boolean canSpend(double value){
         return balance + value <= budget;
     }
 }

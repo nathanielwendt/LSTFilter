@@ -1,6 +1,7 @@
 package com.ut.mpc.utils;
 
 import com.ut.mpc.setup.Constants;
+import com.ut.mpc.setup.Initializer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,22 +15,14 @@ public class LSTFilter {
 	private boolean smartInsert = true;
     private boolean kdCache = true;
 
-    //point representing center/or reference of structure for use with gps dist calcs
-    //default to some point in California
-    private STPoint refPoint = new STPoint(-122.4375f, 37.77305f, 0f);
-
 	/**
 	 * Creates a new LSTFilter containing the given structure.
 	 * @param structure - STStorage structure to include within the LSTFilter
 	 */
-	public LSTFilter(STStorage structure){
+	public LSTFilter(STStorage structure, Initializer initializer){
 		this.structure = structure;
-        PoK.updateConfig(this.refPoint);
+        initializer.initialize();
 	}
-
-    public void setRefPoint(STPoint ref){
-        this.refPoint = ref;
-    }
 
     public void setKDCache(boolean val){
         this.kdCache = val;
@@ -47,12 +40,16 @@ public class LSTFilter {
 			this.stdInsert(item);
 	}
 
+    public void insert(STPoint item, STPoint gridGran){
+
+    }
+
     /**
      *  Method to adapt to legacy queries with region instead of query window
      *  @param region - spatial and temporal bounds for which to query for the PoK
      */
     public double windowPoK(STRegion region){
-        STPoint gridGran = new STPoint(PoK.X_GRID_GRAN, PoK.Y_GRID_GRAN, PoK.T_GRID_GRAN);
+        STPoint gridGran = new STPoint(PoK.X_CUBE, PoK.Y_CUBE, PoK.T_CUBE);
         return this.windowPoK(new QueryWindow(region, gridGran));
     }
 
@@ -71,41 +68,89 @@ public class LSTFilter {
         float tCenterOffset = tGridGran / 2;
 
         //boundPoints must have 3 dimensions, mins and maxs doesn't necessarily need to
-        List<STPoint> boundPoints = structure.range(window.getRegion());
+        STPoint minFetch = new STPoint(window.getRegion().getMins());
+        STPoint maxFetch = new STPoint(window.getRegion().getMaxs());
+
+        //extend the region to include all possible points which could contribute
+        STPoint.add(minFetch, new STPoint(-xCenterOffset, -yCenterOffset, -tCenterOffset));
+        STPoint.add(maxFetch, new STPoint(xCenterOffset, yCenterOffset, tCenterOffset));
+
+        //List<STPoint> boundPoints = structure.range(window.getRegion());
+        List<STPoint> boundPoints = structure.range(new STRegion(minFetch, maxFetch));
 
         if(boundPoints.size() == 0){
             return 0.0;
         }
 
-        STPoint minBounds = new STPoint();
-        STPoint maxBounds = new STPoint();
+        // Effective bounds are the bounds of the points actually found in the range query above
+        // Effective bounds must exist in all three dimensions
+        STPoint effMinBounds = new STPoint();
+        STPoint effMaxBounds = new STPoint();
         for(STPoint point : boundPoints){
-            minBounds.updateMin(point);
-            maxBounds.updateMax(point);
+            effMinBounds.updateMin(point);
+            effMaxBounds.updateMax(point);
         }
 
+        /*
+        Min and Max Bounds are the bounds upon which we evaluate the sub-cubes.
+        We set them initially to the effective bounds of the points
+         */
+        STPoint minQueryBounds = window.getRegion().getMins();
+        STPoint maxQueryBounds = window.getRegion().getMaxs();
+
+        STPoint minBounds = new STPoint(effMinBounds);
+        STPoint maxBounds = new STPoint(effMaxBounds);
+
+        float effXSpan = effMaxBounds.getX() - effMinBounds.getX();
+        float effYSpan = effMaxBounds.getY() - effMinBounds.getY();
+        float effTSpan = effMaxBounds.getT() - effMinBounds.getT();
+        if(effXSpan < xGridGran){
+            float midX = (effXSpan / 2) + effMaxBounds.getX();
+            minBounds.setX(midX - xCenterOffset);
+            maxBounds.setX(midX + xCenterOffset);
+        } else {
+            minBounds.setX(STPoint.maxValidDim(effMinBounds.getX(), minQueryBounds.getX()));
+            maxBounds.setX(STPoint.minValidDim(effMaxBounds.getX(), maxQueryBounds.getX()));
+        }
+        if(effYSpan < yGridGran){
+            float midY = (effYSpan / 2) + effMaxBounds.getY();
+            minBounds.setY(midY - yCenterOffset);
+            maxBounds.setY(midY + yCenterOffset);
+        } else {
+            minBounds.setY(STPoint.maxValidDim(effMinBounds.getY(), minQueryBounds.getY()));
+            maxBounds.setY(STPoint.minValidDim(effMaxBounds.getY(), maxQueryBounds.getY()));
+        }
+        if(effTSpan < tGridGran){
+            float midT = (effTSpan / 2) + effMaxBounds.getT();
+            minBounds.setT(midT - tCenterOffset);
+            maxBounds.setT(midT + tCenterOffset);
+        } else {
+            minBounds.setT(STPoint.maxValidDim(effMinBounds.getT(), minQueryBounds.getT()));
+            maxBounds.setT(STPoint.minValidDim(effMaxBounds.getT(), maxQueryBounds.getT()));
+        }
 
         if(SPATIAL_TYPE == SpatialType.GPS){
             STPoint.add(minBounds, Constants.NEG_FLOAT_BUDGE);
             STPoint.add(maxBounds, Constants.POS_FLOAT_BUDGE);
         }
 
-        //center align region
-        STPoint.add(minBounds, new STPoint(-xCenterOffset, -yCenterOffset, -tCenterOffset));
-        STPoint.add(maxBounds, new STPoint(xCenterOffset, yCenterOffset, tCenterOffset));
-
         //building cache index might not have all 3 dimensions, must create accordingly
         double totalGridCount = 0.0;
 
         STStorage cacheStore;
-
+        double windowVolume = window.getRegion().getNVolume();
+        double evalVolume = 0.0f;
+        STRegion evalRegion = new STRegion(minBounds, maxBounds);
         if(this.kdCache){
             if(window.hasSpaceBounds() && window.hasTimeBounds()){
                 cacheStore = KDTreeAdapter.makeBalancedTree(3,0,boundPoints);
+                evalVolume = evalRegion.getNVolume(true, true, true);
             } else if(window.hasSpaceBounds() && !window.hasTimeBounds()){
                 cacheStore = KDTreeAdapter.makeBalancedTree(2,0,boundPoints);
+                evalVolume = evalRegion.getNVolume(true, true, false);
             } else if(!window.hasSpaceBounds() && window.hasTimeBounds()){
                 cacheStore = KDTreeAdapter.makeBalancedTree(1,2,boundPoints);
+                evalVolume = evalRegion.getNVolume(false, false, true);
             } else {
                 return 0.0;
             }
@@ -115,13 +160,13 @@ public class LSTFilter {
             cacheStore = cacheStoreArr;
         }
 
-
         STPoint boundValues = new STPoint(xGridGran, yGridGran, tGridGran);
         //STPoint boundValues = new STPoint(PoK.X_RADIUS, PoK.Y_RADIUS, PoK.T_RADIUS);
 
+        // Refactored to not include the "blank" cube optimization
         double totalWeight = 0.0;
         double regionWeight = 0.0;
-        int count = 0;
+        int effCubeCount = 0;
         for(float x = minBounds.getX(); x < maxBounds.getX(); x = x + xGridGran){
             for(float y = minBounds.getY(); y < maxBounds.getY(); y = y + yGridGran){
                 for(float t = minBounds.getT(); t < maxBounds.getT(); t = t + tGridGran){
@@ -134,16 +179,30 @@ public class LSTFilter {
                         List<STPoint> activePoints = cacheStore.range(miniRegion);
                         //List<STPoint> activePoints = structure.range(miniRegion);
                         regionWeight = this.getPointsPoK(centerOfRegion, activePoints);
-                        count++;
+                        effCubeCount++;
+                        totalWeight += regionWeight;
                     } catch (LSTFilterException e){
                         e.printStackTrace();
                     }
-					totalWeight += regionWeight;
 				}
 			}
 		}
 
-        return totalWeight / count;
+        double volDiff = windowVolume - evalVolume;
+        double cubeVolume = (xGridGran * yGridGran * tGridGran);
+        double blankCubes = Math.floor(volDiff / cubeVolume);
+
+//        System.out.println("window" + window.getRegion());
+//        System.out.println("evalWindow" + evalRegion);
+//        System.out.println("cube count " + effCubeCount);
+//        System.out.println("blank cubes " + blankCubes);
+//        System.out.println("totalWeight " + totalWeight);
+//        System.out.println("volDiff " + volDiff);
+        if(volDiff < 0){
+            throw new RuntimeException("volume difference should never be less than 0");
+        }
+
+        return totalWeight / (effCubeCount + blankCubes);
 	}
 
 	private double getGridCount(STPoint ref1, STPoint ref2, STPoint granularities){
@@ -156,14 +215,17 @@ public class LSTFilter {
 		return xIter * yIter * tIter;
 	}
 
+    public double pointPoK(STPoint point){
+        return this.pointPoK(point, STPoint.unitGran());
+    }
+
 	/**
 	 * Retrieves the PoK for a given point.
 	 * Uses the default space bound values to form a region around the point
 	 * @param point - point to query around
 	 * @return PoK value
 	 */
-	public double pointPoK(STPoint point){
-        STPoint boundValues = new STPoint(PoK.X_RADIUS, PoK.Y_RADIUS, PoK.T_RADIUS);
+	public double pointPoK(STPoint point, STPoint boundValues){
 		try {
 			STRegion miniRegion = GPSLib.getSpaceBoundQuick(point, boundValues, SPATIAL_TYPE);
 			List<STPoint> activePoints = structure.range(miniRegion);
@@ -209,11 +271,6 @@ public class LSTFilter {
     }
 
 
-    public int getCost(STRegion region){
-        return 0;
-    }
-
-
 	/*
 	 *  *********************** Private Methods ********************************
 	 *
@@ -240,8 +297,10 @@ public class LSTFilter {
 				return Double.NaN;
 			}
 
-			spatialCont =  (-PoK.SPACE_DECAY * Math.min(spatialDist, Constants.PoK.SPACE_RADIUS));
-			temporalCont = (-PoK.TEMP_DECAY * Math.min(temporalDist, Constants.PoK.TEMPORAL_RADIUS));
+            // Shouldn't need the Math.min anymore since a point shouldn't be counted unless it's
+            // within the effective RADIUS, however floating point error might make it worth keeping this
+			spatialCont =  (-1 * Math.min(spatialDist, Constants.PoK.SPACE_RADIUS));
+			temporalCont = (-1 * Math.min(temporalDist, Constants.PoK.TEMPORAL_RADIUS));
 			contribution = ((spatialCont + PoK.SPACE_WEIGHT) * (temporalCont + PoK.TEMPORAL_WEIGHT)) / (PoK.SPACE_WEIGHT * PoK.TEMPORAL_WEIGHT);
 			nearby.add(contribution);
 		}

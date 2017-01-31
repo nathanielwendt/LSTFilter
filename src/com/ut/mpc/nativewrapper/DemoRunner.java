@@ -1,6 +1,7 @@
 package com.ut.mpc.nativewrapper;
 
 import com.ut.mpc.setup.Constants;
+import com.ut.mpc.setup.Initializer;
 import com.ut.mpc.utils.LSTFilter;
 import com.ut.mpc.utils.STPoint;
 import com.ut.mpc.utils.STRegion;
@@ -37,7 +38,7 @@ public class DemoRunner {
 //            e.printStackTrace();
 //        }
 
-        LSTFilter filter = new LSTFilter(main);
+        LSTFilter filter = new LSTFilter(main, Initializer.vehicularDefaults());
 //        STRegion query = new STRegion(new STPoint(37.4f,-122.2f,0), new STPoint(37.8f,-122.6f,10000));
 //        double val = filter.windowPoK(query);
 //        System.out.println(val);
@@ -51,8 +52,8 @@ public class DemoRunner {
 
         NativeWrapper midWrapper = new NativeWrapper(conn,"RTreeMid");
         NativeWrapper sparseWrapper = new NativeWrapper(conn,"RTreeSparse");
-        LSTFilter mid = new LSTFilter(midWrapper);
-        LSTFilter sparse = new LSTFilter(sparseWrapper);
+        LSTFilter mid = new LSTFilter(midWrapper, Initializer.vehicularDefaults());
+        LSTFilter sparse = new LSTFilter(sparseWrapper, Initializer.vehicularDefaults());
 
         mid.setSmartInsert(true);
         Constants.SmartInsert.INS_THRESH = .8;

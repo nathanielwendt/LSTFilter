@@ -5,6 +5,7 @@ import static org.junit.Assert.*;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.ut.mpc.setup.Initializer;
 import com.ut.mpc.utils.SpatialArray;
 import org.junit.Before;
 import org.junit.Test;
@@ -16,40 +17,33 @@ import com.ut.mpc.utils.STPoint;
 import com.ut.mpc.utils.STRegion;
 
 public class LSTFilterTests {
+    private Initializer initializer;
 	
 	@Before
 	public void setUp(){
-		PoK.GRID_DEFAULT = true;
-		Constants.SPATIAL_TYPE = Constants.SpatialType.Meters;
-
-        Constants.PoK.TOTAL_WEIGHT = 2;
-        PoK.SPACE_WEIGHT = 1;
-        Constants.PoK.TEMPORAL_WEIGHT = 1;
-
-        Constants.PoK.SPACE_RADIUS = 1;
-        Constants.PoK.TEMPORAL_RADIUS = 1;
-
-        PoK.GRID_DEFAULT = false;
+        initializer = new Initializer.Builder().spatialType(Constants.SpatialType.Meters)
+                                                .spaceWeight(1).temporalWeight(1).refPointDefault()
+                                                .spaceRadius(1).temporalRadius(1).trimThresh(10).build();
 	}
 	
 	@Test
 	public void testPointPoKSweepTemporal(){
-		LSTFilter filter = new LSTFilter(new SpatialArray());
+		LSTFilter filter = new LSTFilter(new SpatialArray(), initializer);
 		filter.setSmartInsert(false);
 		filter.insert(new STPoint(1,1,10));
-		
+
 		double result = filter.pointPoK(new STPoint(1,1,10f));
 		assertEquals(1f, result, .0001);
 		
 		result = filter.pointPoK(new STPoint(1,1,9.5f));
-		assertEquals(.75f, result, .0001);
+		assertEquals(.5f, result, .0001);
 		
 		result = filter.pointPoK(new STPoint(1,1,10.5f));
-		assertEquals(.75f, result, .0001);
-		
-		//Point is included in range, so temporal contribution is none, weighted at 50% of total contr.
-		result = filter.pointPoK(new STPoint(1,1,11f));
 		assertEquals(.5f, result, .0001);
+
+        //Point is not included in the range, so result is 0
+		result = filter.pointPoK(new STPoint(1,1,11f));
+		assertEquals(.0f, result, .0001);
 		
 		//Point is not included in the range, so result is 0
 		result = filter.pointPoK(new STPoint(1,1,11.1f));
@@ -58,7 +52,7 @@ public class LSTFilterTests {
 	
 	@Test
 	public void testPointPoKSweepSpatial(){
-		LSTFilter filter = new LSTFilter(new SpatialArray());
+		LSTFilter filter = new LSTFilter(new SpatialArray(), initializer);
 		filter.setSmartInsert(false);
 		filter.insert(new STPoint(1,1,10));
 		//filter.insert(new STPoint(2,2,20));
@@ -69,13 +63,13 @@ public class LSTFilterTests {
 		assertEquals(1f, result, .0001);
 		
 		result = filter.pointPoK(new STPoint(0.5f,1f,10f));
-		assertEquals(.75f, result, .0001);
+		assertEquals(.5f, result, .0001);
 		
 		result = filter.pointPoK(new STPoint(0.5f,0.5f,10f));
-		assertEquals(.646446f, result, .0001);
+		assertEquals(.292893f, result, .0001);
 		
 		result = filter.pointPoK(new STPoint(0f,0f,10f));
-		assertEquals(.50f, result, .0001);
+		assertEquals(0f, result, .0001);
 		
 		result = filter.pointPoK(new STPoint(-0.01f,-0.01f,10f));
 		assertEquals(0f, result, .0001);
@@ -83,7 +77,7 @@ public class LSTFilterTests {
 	
 	@Test
 	public void testPointPoKMultiple(){
-		LSTFilter filter = new LSTFilter(new SpatialArray());
+		LSTFilter filter = new LSTFilter(new SpatialArray(), initializer);
 		filter.setSmartInsert(false);
 		filter.insert(new STPoint(1,1,1));
 		filter.insert(new STPoint(1.1f,1.1f,1.1f));
@@ -95,7 +89,7 @@ public class LSTFilterTests {
 	
 	@Test
 	public void testAggPoK(){
-		LSTFilter filter = new LSTFilter(new SpatialArray());
+		LSTFilter filter = new LSTFilter(new SpatialArray(), initializer);
 		List<Double> items = new ArrayList<Double>();
 		double item1 = .000005;
 		double item2 = .000005;
@@ -113,59 +107,68 @@ public class LSTFilterTests {
 	
 	@Test
 	public void testWindowPoK(){
-		LSTFilter filter = new LSTFilter(new SpatialArray());
+		LSTFilter filter = new LSTFilter(new SpatialArray(), initializer);
 		filter.setSmartInsert(false);
-		filter.insert(new STPoint(0.25f,0.25f,0.25f));
+		filter.insert(new STPoint(0.5f,0.5f,0.5f));
 		
 		STPoint min = new STPoint(0f,0f,0f);
-		STPoint max = new STPoint(0.5f,0.5f,0.5f);
+		STPoint max = new STPoint(1f,1f,1f);
 		double result = filter.windowPoK(new STRegion(min, max));
         assertEquals(1.0f, result, .0001f);
-		
-		max = new STPoint(1f,0.5f,0.5f);
-		result = filter.windowPoK(new STRegion(min, max));
-        //value is .5f because query should optimize to not need to compute over the extra grid
-        //still divide by 2 since snap is false
-		assertEquals(.5f, result, .0001);
+
+        //8 cubes.  7 are empty, 1 is 100% so result is 1/8.
+        max = new STPoint(2f,2f,2f);
+        result = filter.windowPoK(new STRegion(min, max));
+        assertEquals(0.125f, result, .0001f);
+
+        //2 cubes.  1 is empty, 1 is 100% so result is 1/2.
+        max = new STPoint(1f,1f,2f);
+        result = filter.windowPoK(new STRegion(min, max));
+        assertEquals(0.5f, result, .0001f);
 	}
 
     @Test
     public void testWindowPoKExcludeTemporal(){
-        LSTFilter filter = new LSTFilter(new SpatialArray());
+        LSTFilter filter = new LSTFilter(new SpatialArray(), initializer);
         filter.setSmartInsert(false);
-        filter.insert(new STPoint(0.25f,0.25f,0.25f));
+        filter.insert(new STPoint(0.5f,0.5f,0.5f));
 
         STPoint min = new STPoint(0f,0f);
-        STPoint max = new STPoint(0.5f,0.5f);
+        STPoint max = new STPoint(1f,1f);
         double result = filter.windowPoK(new STRegion(min, max));
         assertEquals(1.0f, result, .0001f);
     }
 
     @Test
     public void testWindowPoKExcludeSpatial(){
-        LSTFilter filter = new LSTFilter(new SpatialArray());
+        LSTFilter filter = new LSTFilter(new SpatialArray(), initializer);
         filter.setSmartInsert(false);
-        filter.insert(new STPoint(0.25f,0.25f,0.25f));
+        filter.insert(new STPoint(0.5f,0.5f,0.5f));
 
         STPoint min = new STPoint();
         min.setT(0f);
         STPoint max = new STPoint();
-        max.setT(.5f);
+        max.setT(1f);
         double result = filter.windowPoK(new STRegion(min, max));
         assertEquals(1.0f, result, .0001f);
     }
 
     @Test
     public void testWindowPoKNoPoints(){
-        LSTFilter filter = new LSTFilter(new SpatialArray());
+        LSTFilter filter = new LSTFilter(new SpatialArray(), initializer);
         filter.setSmartInsert(false);
-        filter.insert(new STPoint(0.25f,0.25f,0.25f));
+        filter.insert(new STPoint(0.5f,0.5f,0.5f));
 
         STPoint min = new STPoint();
-        min.setT(.5f);
+        min.setT(2f);
         STPoint max = new STPoint();
-        max.setT(.5f);
+        max.setT(3f);
         double result = filter.windowPoK(new STRegion(min, max));
+        assertEquals(0f, result, .0001f);
+
+        min = new STPoint(2,2,2);
+        max = new STPoint(3,3,3);
+        result = filter.windowPoK(new STRegion(min, max));
         assertEquals(0f, result, .0001f);
     }
 

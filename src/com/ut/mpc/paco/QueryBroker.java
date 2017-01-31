@@ -16,7 +16,12 @@ public class QueryBroker {
     }
 
     public QueryBudget account(String appId){
-        return budgets.get(appId);
+        QueryBudget budget = budgets.get(appId);
+        if(budget == null){
+            budget = new QueryBudget(BudgetConstants.UNKNOWN_PARTY);
+            budgets.put(appId, budget);
+        }
+        return budget;
     }
 
 }

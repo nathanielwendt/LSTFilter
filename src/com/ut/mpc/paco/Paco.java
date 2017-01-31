@@ -1,6 +1,7 @@
 package com.ut.mpc.paco;
 
 import com.ut.mpc.utils.LSTFilter;
+import com.ut.mpc.utils.QueryWindow;
 import com.ut.mpc.utils.STPoint;
 import com.ut.mpc.utils.STRegion;
 
@@ -12,20 +13,17 @@ import java.util.List;
 public class Paco {
     private LSTFilter lstFilter;
     private QueryBroker queryBroker;
-    private String appId;
 
-    public Paco(String appId){
-        this.appId = appId;
-    }
+    public Paco(){}
 
-    public double windowPoK(STRegion region) throws PacoException {
-        int cost = lstFilter.getCost(region);
+    public double windowPoK(QueryWindow window, String appId) throws PacoException {
+        double cost = window.getCost();
         QueryBudget budget = queryBroker.account(appId);
         if(budget.canSpend(cost)){
             budget.spend(cost);
-            return lstFilter.windowPoK(region);
+            return lstFilter.windowPoK(window);
         } else {
-            throw new PacoException("Budget exceeded for application");
+            throw new PacoException("Budget exceeded for appId: " + appId);
         }
     }
 
@@ -44,6 +42,11 @@ public class Paco {
     /*
     Following methods are for distributed processing with a Z-index
      */
+
+    // Currently bypasses budgets, since we are dealing with semi-trusted party
+    public List<String> keys(QueryWindow window){
+        return null;
+    }
 
     public List<String> groups(STRegion region){
         return null;

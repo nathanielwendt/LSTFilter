@@ -172,6 +172,26 @@ public class STPoint {
         }
     }
 
+    public static float maxValidDim(float a, float b){
+        if(Float.isNaN(a)){
+            return b;
+        } else if(Float.isNaN(b)){
+            return a;
+        } else {
+            return Math.max(a,b);
+        }
+    }
+
+    public static float minValidDim(float a, float b){
+        if(Float.isNaN(a)){
+            return b;
+        } else if(Float.isNaN(b)){
+            return a;
+        } else {
+            return Math.min(a,b);
+        }
+    }
+
     public static STPoint minPoint(){
         return new STPoint(-Float.MAX_VALUE, -Float.MAX_VALUE, -Float.MAX_VALUE);
     }
@@ -179,5 +199,7 @@ public class STPoint {
     public static STPoint maxPoint(){
         return new STPoint(Float.MAX_VALUE, Float.MAX_VALUE, Float.MAX_VALUE);
     }
+
+    public static STPoint unitGran() { return new STPoint(PoK.X_CUBE / 2, PoK.Y_CUBE / 2, PoK.T_CUBE / 2); }
 	
 }

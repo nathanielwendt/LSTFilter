@@ -38,4 +38,8 @@ public class QueryWindow {
         return mins.hasX() && mins.hasY();
     }
 
+    public double getCost(){
+        return this.region.getVolume() / (this.gridGran.getX() * this.gridGran.getY() * this.gridGran.getT());
+    }
+
 }

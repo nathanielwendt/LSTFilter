@@ -36,8 +36,8 @@ public interface STStorage {
 	
 	/**
 	 * Internally calls nearest neighbor and performs a range query on timestamps alone
-	 * @param p1 First query point, starting point for sequence
-	 * @param p2 Second query point, ending point for sequence
+	 * @param start First query point, starting point for sequence
+	 * @param end Second query point, ending point for sequence
 	 * @return List of points in order they appear in the sequence
 	 */
 	public List<STPoint> getSequence(STPoint start, STPoint end);

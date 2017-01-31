@@ -4,52 +4,37 @@ import com.ut.mpc.utils.GPSLib;
 import com.ut.mpc.utils.STPoint;
 
 public class Constants {
+
+    //NOTE: The LST Filter and PACO in general will likely experience very odd behavior at the
+    //edges of coordinate systems.  I.e. longitude going from 0 degrees to negative (assumptions about add/sub broken)
+
 	public enum SpatialType{GPS,Meters};
 	public static SpatialType SPATIAL_TYPE = SpatialType.GPS;
     public static STPoint DEFAULT_REF_POINT = new STPoint(-122.39393f,37.75169f,1212617674);
 
     public static final float FLOAT_DEC_BUDGE = .00001f; //about 10m
-    public static final STPoint POS_FLOAT_BUDGE = new STPoint(FLOAT_DEC_BUDGE, FLOAT_DEC_BUDGE, 5000);
-    public static final STPoint NEG_FLOAT_BUDGE = new STPoint(-FLOAT_DEC_BUDGE, -FLOAT_DEC_BUDGE, -5000);
+    public static final STPoint POS_FLOAT_BUDGE = new STPoint(FLOAT_DEC_BUDGE, FLOAT_DEC_BUDGE, 0);
+    public static final STPoint NEG_FLOAT_BUDGE = new STPoint(-FLOAT_DEC_BUDGE, -FLOAT_DEC_BUDGE, 0);
 
     public static class PoK {
-		public static float TOTAL_WEIGHT = 2;
 		public static float SPACE_WEIGHT = 1;
-        public static float TEMPORAL_WEIGHT = TOTAL_WEIGHT - 1;
-
-        public static float SPACE_RADIUS = 1;
-        public static float TEMPORAL_RADIUS = 60 * 60 * 6; //6 hours
-
+        public static float TEMPORAL_WEIGHT = 1;
+        public static float SPACE_RADIUS;
+        public static float TEMPORAL_RADIUS;
         public static int TRIM_THRESH = 10;
-        public static boolean GRID_DEFAULT = true; //default is grid size == radius size, GRID_FACTOR == 1
-        public static float GRID_FACTOR = 2; // number of grids per radius, should never be less than 1
-
-        public static float LONG_KM_EST = .009f;
-        public static float LAT_KM_EST = .001f;
 
         //TODO: add SPACE-TEMPORAL Trim so nearby doesn't need to trim if they are insignificant points
-
         public static void updateConfig(STPoint refPoint){
             if(SPATIAL_TYPE == SpatialType.GPS){
-                X_RADIUS = GPSLib.longOffsetFromDistance(refPoint, PoK.SPACE_RADIUS);
-                Y_RADIUS = GPSLib.latOffsetFromDistance(refPoint, PoK.SPACE_RADIUS);
+                X_CUBE = GPSLib.longOffsetFromDistance(refPoint, PoK.SPACE_RADIUS);
+                Y_CUBE = GPSLib.latOffsetFromDistance(refPoint, PoK.SPACE_RADIUS);
             } else {
-                X_RADIUS = PoK.SPACE_RADIUS;
-                Y_RADIUS = PoK.SPACE_RADIUS;
+                X_CUBE = PoK.SPACE_RADIUS;
+                Y_CUBE = PoK.SPACE_RADIUS;
             }
-            T_RADIUS = PoK.TEMPORAL_RADIUS;
-
-            X_GRID_GRAN  = (PoK.GRID_DEFAULT) ? X_RADIUS : X_RADIUS / PoK.GRID_FACTOR;
-            Y_GRID_GRAN = (PoK.GRID_DEFAULT) ? Y_RADIUS : Y_RADIUS / PoK.GRID_FACTOR;
-            T_GRID_GRAN = (PoK.GRID_DEFAULT) ? T_RADIUS : T_RADIUS / PoK.GRID_FACTOR;
-
-            SPACE_DECAY = PoK.SPACE_WEIGHT / PoK.SPACE_RADIUS;
-            TEMP_DECAY = PoK.TEMPORAL_WEIGHT / PoK.TEMPORAL_RADIUS;
+            T_CUBE = PoK.TEMPORAL_RADIUS;
         }
-        public static float X_RADIUS, Y_RADIUS, T_RADIUS;
-        public static float X_GRID_GRAN, Y_GRID_GRAN, T_GRID_GRAN;
-        public static float SPACE_DECAY, TEMP_DECAY;
-
+        public static float X_CUBE, Y_CUBE, T_CUBE;
 	}
 	
 	public static class SmartInsert{
@@ -73,20 +58,20 @@ public class Constants {
 		}
 	}
 
-    public static void setCabDefaults(){
-        PoK.SPACE_RADIUS = 1; //km
-        PoK.TEMPORAL_RADIUS = 60 * 60 * 6; //6 hours in seconds
-        SPATIAL_TYPE = SpatialType.GPS;
-        PoK.updateConfig(DEFAULT_REF_POINT);
-    }
-
-    public static void setMobilityDefaults(){
-        PoK.SPACE_RADIUS = 50; //m
-        PoK.TEMPORAL_RADIUS = 60 * 5; //5 minutes in seconds
-        SPATIAL_TYPE = SpatialType.Meters;
-        //DEFAULT_REF_POINT is unnecessary because gps type is off
-        PoK.updateConfig(DEFAULT_REF_POINT);
-    }
+//    public static void setCabDefaults(){
+//        PoK.TEMPORAL_RADIUS = 60 * 60 * 6; //6 hours in seconds
+//        PoK.SPACE_RADIUS = 1; //km
+//        SPATIAL_TYPE = SpatialType.GPS;
+//        PoK.updateConfig(DEFAULT_REF_POINT);
+//    }
+//
+//    public static void setMobilityDefaults(){
+//        PoK.TEMPORAL_RADIUS = 60 * 5; // 5 minutes in seconds
+//        PoK.SPACE_RADIUS = 50; //m
+//        SPATIAL_TYPE = SpatialType.Meters;
+//        //DEFAULT_REF_POINT is unnecessary because gps type is off
+//        PoK.updateConfig(DEFAULT_REF_POINT);
+//    }
 
 //	/*
 //	 * Defaults configured for the Crawded Mobi Data Set

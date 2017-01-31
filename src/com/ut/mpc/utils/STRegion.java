@@ -40,6 +40,30 @@ public class STRegion {
 			this.maxs.updateMax(point);	
 		}
 	}
+
+    //Determines if a given point lies within the region bounds
+    //Every dimension that both the point and region have will be evaluated
+    public boolean withinRegion(STPoint point){
+        if(point.hasX()){
+            double x = point.getX();
+            if(x > this.maxs.getX() || x < this.mins.getX()){
+                return false;
+            }
+        }
+        if(point.hasY()){
+            double y = point.getY();
+            if(y > this.maxs.getY() || y < this.mins.getY()){
+                return false;
+            }
+        }
+        if(point.hasT()){
+            double t = point.getT();
+            if(t > this.maxs.getT() || t < this.mins.getT()){
+                return false;
+            }
+        }
+        return true;
+    }
 	
 	/**
 	 * Retrieves the range's minimum values
@@ -60,5 +84,30 @@ public class STRegion {
 	public String toString(){
 		return this.mins.toString() + this.maxs.toString();
 	}
+
+    public double getVolume(){
+        return this.maxs.getX() - this.mins.getX() *
+                this.maxs.getY() - this.mins.getY() *
+                this.maxs.getT() - this.mins.getT();
+    }
+
+    public double getNVolume(){
+        float temp = 1.0f;
+        return this.getNVolume(this.mins.hasX(), this.mins.hasY(), this.mins.hasT());
+    }
+
+    public double getNVolume(boolean x, boolean y, boolean t){
+        float temp = 1.0f;
+        if(x){
+            temp *= this.maxs.getX() - this.mins.getX();
+        }
+        if(y){
+            temp *= this.maxs.getY() - this.mins.getY();
+        }
+        if(t){
+            temp *= this.maxs.getT() - this.mins.getT();
+        }
+        return temp;
+    }
 
 }
